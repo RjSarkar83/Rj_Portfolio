@@ -2,7 +2,7 @@
    app.js — scroll-scrubbed film engine
    Drives the film with the scrollbar: segments play, holds
    freeze so a section can be read. Works with a real
-   film.mp4 if one is present, otherwise with the keyframe
+   with the keyframe stills (no mp4 ships — video path retired wave 26)
    stills — identical scroll behaviour either way.
    ============================================================ */
 (function () {
@@ -16,8 +16,8 @@
   document.documentElement.style.setProperty('--accent', C.accent);
 
   /* ───── 1. text from config ───── */
-  $("#barName").textContent = C.name;
-  $("#ldName").innerHTML = C.nameLine1 + "<br><em>" + C.nameLine2 + "</em>";
+  $("#barName").textContent = C.barName || C.name;
+  $("#ldName").innerHTML = '<span class="x-mt">' + C.nameLine1 + "</span><br><em>" + C.nameLine2 + "</em>";
   $("#n1").textContent = C.nameLine1;
   $("#n2").textContent = C.nameLine2;
   $("#iRole").textContent = C.role;
@@ -127,7 +127,7 @@
   }
 
   /* ───── 4. film: video if available, else stills ───── */
-  var F = C.frames, vid = $("#vid"), useVideo = false, imgs = [];
+  var F = C.frames, imgs = [];
 
   var filmEl = $("#film");
   F.forEach(function (f, n) {
@@ -145,7 +145,7 @@
     var span = (F[b].t - F[a].t) || 1;
     var u = clamp((t - F[a].t) / span, 0, 1);
     // wide dissolve: with view-angle-adjacent frames this reads as real rotation
-    var m = smooth(clamp((u - 0.05) / 0.90, 0, 1));
+    var m = smooth(clamp(u, 0, 1));   // full-span blend: no pose holds at the seams (wave 27)
     for (var j = 0; j < imgs.length; j++) {
       var o = j === a ? 1 - m : j === b ? m : 0;
       if (a === b && j === a) o = 1;
@@ -255,13 +255,7 @@
     if (Math.abs(targetT - shownT) < 0.002) shownT = targetT;
     var t = shownT;
 
-    if (useVideo) {
-      if (vid.readyState >= 2 && Math.abs(vid.currentTime - t) > 0.02) {
-        try { vid.currentTime = t; } catch (e) {}
-      }
-    } else {
-      renderStills(t);
-    }
+    renderStills(t);
 
     /* hero weight: full at t=0, gone by the intro hold */
     var hw = 1 - smooth(clamp(t / 7.6, 0, 1));
@@ -342,24 +336,8 @@
     setTimeout(function () { $("#loader").classList.add("done"); }, 260);
   }
 
-  /* try the real film; swap over silently if it exists */
-  (function probeFilm() {
-    var src = mob() && C.filmSrcMobile ? C.filmSrcMobile : C.filmSrc;
-    if (!src) return;
-    vid.addEventListener("loadeddata", function () {
-      useVideo = true;
-      vid.style.opacity = 1;
-      imgs.forEach(function (im) { im.style.display = "none"; });
-      try { vid.play().then(function () { vid.pause(); }).catch(function () {}); } catch (e) {}
-      onScroll();
-    });
-    vid.addEventListener("error", function () { useVideo = false; });
-    vid.src = src;
-  })();
-
   /* iOS needs one gesture before seeking works */
   window.addEventListener("touchstart", function once() {
-    if (useVideo) { try { vid.play().then(function () { vid.pause(); }); } catch (e) {} }
     window.removeEventListener("touchstart", once);
   }, { passive: true });
 })();

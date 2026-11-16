@@ -597,13 +597,14 @@
     var span = (F[b].t - F[a].t) || 1;
     return a + clamp((t - F[a].t) / span, 0, 1) * (b - a);
   }
+  var frLast = [];
   function renderPos(p) {
     p = clamp(p, 0, NF - 1);
     var a = Math.floor(p), b = Math.min(a + 1, NF - 1), m = smooth(p - a), j, o;
     for (j = 0; j < frImgs.length; j++) {
       o = j === a ? 1 - m : j === b ? m : 0;
       if (a === b && j === a) o = 1;
-      frImgs[j].style.opacity = o;
+      if (frLast[j] !== o) { frLast[j] = o; frImgs[j].style.opacity = o; }
     }
     var near = m < 0.5 ? a : b;
     if (near !== turn.lastIdx) {
@@ -719,8 +720,6 @@
   }
   /* the mirrored half of the turntable */
   var flipCSS = document.createElement("style");
-  flipCSS.textContent = "body.x-flip #film .fr{transform:translate(-50%,-50%) scaleX(-1)}" +
-                        "body.x-flip #film video{transform:translate(-50%,-50%) scaleX(-1)}";
   document.head.appendChild(flipCSS);
 
   /* ════════════════════════ 07 · VELOCITY OPTICS ═════════════════ */
@@ -1538,9 +1537,7 @@ if (!small && actId === "contact") {
   var CASES = [
     { key: "A", title: "Advertising", tech: "Event design", client: "C21 Mall · Indore",
       stages: [
-        { n: "Recce", kind: "photo", img: "media/case/recce_laser.avif", tag: "SITE · 21:40",
-          cap: "Atrium shot after closing. Fourteen fascia positions tagged off the column grid, floor fall measured at ±8 mm, lift slot booked for 22:10.",
-          meta: ["14 positions", "±8 mm floor", "lift 22:10"] },
+
         { n: "Concept", kind: "draw", draw: "portal",
           cap: "One portal, one ratio. The arch is drawn to the atrium real 6 400 mm span, so nothing gets adjusted on site at two in the morning.",
           meta: ["span 6 400", "rise 1 200", "1 ratio"] },
@@ -1557,24 +1554,14 @@ if (!small && actId === "contact") {
                  ["P-14", "2 400 × 900", "ACM 3", "vinyl + backlit", "14"]],
           cap: "Cut list and panel schedule. Every fascia numbered, sized and sequenced to the lift order — the kit list is the install plan.",
           meta: ["14 panels", "ACM 3 mm", "seq 01→14"] },
-        { n: "Production", kind: "photo", img: "media/case/print_bed.avif", tag: "WORKSHOP · 23:20",
-          cap: "Vinyl printed and cut, panels routed and kitted in sequence. Kit 07 leaves the bench before kit 04 is finished — the sequence is the point.",
-          meta: ["kits 01–14", "route ±0.5"] },
-        { n: "Execution", kind: "photo", img: "media/work/a_event.avif", tag: "SITE · 02:15",
-          cap: "Truss up, panels on, lamps struck in sequence. Fourteen fascias in eight hours with zero re-cuts.",
-          meta: ["22:00–06:00", "0 re-cuts"] },
-        { n: "Handover", kind: "photo", img: "media/case/morning_rig.avif", tag: "06:00 · DOORS OPEN",
-          cap: "Mall opens on time. As-built marked up on the working drawing the same morning and filed against the sheet number.",
-          meta: ["as-built 06:40", "sheet A-202"] }
+
       ] },
     { key: "B", title: "Branding", tech: "National retail rollout", client: "Xiaomi · Nokia · SBI · Havells · Pantaloons",
       stages: [
         { n: "Ratio study", kind: "draw", draw: "ratio",
           cap: "One ratio drawing: sign band, pilaster and module locked to a grid that survives any shopfront width in the chain.",
           meta: ["module 300", "band 900", "15 sectors"] },
-        { n: "Prototype", kind: "photo", img: "media/case/proto_shopfront.avif", tag: "PILOT STORE · DAY 1",
-          cap: "Pilot shopfront built and photographed across three hours of daylight. The only redraw in the programme happened here, not at store 212.",
-          meta: ["1 pilot", "1 redraw", "0 after"] },
+
         { n: "Rollout kit", kind: "sheet",
           doc: "ROLLOUT KIT · REV 4",
           head: ["Sector", "Stores", "Fascia band", "Note"],
@@ -1585,9 +1572,7 @@ if (!small && actId === "contact") {
                  ["Others", "30+", "600–900", "kit covers all"]],
           cap: "Widths banded so any store falls into one of six fascia sizes. No bespoke drawing after the pilot — that is what makes 300 stores one job.",
           meta: ["300+ stores", "6 sizes", "15 sectors"] },
-        { n: "Production", kind: "photo", img: "media/case/print_bed.avif", tag: "PRINT · BATCH 12",
-          cap: "Batches printed against the band schedule, colour held to the chain master swatch across every run and every vendor.",
-          meta: ["ΔE ≤ 3.0", "batch 12/19"] },
+
         { n: "Audit", kind: "sheet",
           doc: "NIGHT AUDIT · 1 PAGE",
           head: ["Check", "Method", "Result"],
@@ -1598,15 +1583,11 @@ if (!small && actId === "contact") {
                  ["Fixings", "torque spot check", "pass"]],
           cap: "Night audit at store 212. The audit sheet is one page long and it never changed in three years of rollout.",
           meta: ["store 212/300", "1 page", "0 lamp-out"] },
-        { n: "Live", kind: "photo", img: "media/work/b_rollout.avif", tag: "LIVE · NIGHT 40",
-          cap: "The row at night, forty days in: one band, one colour temperature, three hundred stores reading as a single brand.",
-          meta: ["300+ stores", "1 band"] }
+
       ] },
     { key: "C", title: "Creative", tech: "Startup identity", client: "150+ identities built",
       stages: [
-        { n: "Sketch", kind: "photo", img: "media/work/c_identity.avif", tag: "DAY 1 · PEN",
-          cap: "Everything starts in pen. Twenty thumbnails, three survivors, one that still reads at 12 mm on a vinyl plot.",
-          meta: ["20 thumbs", "3 survive"] },
+
         { n: "Construction", kind: "draw", draw: "grid",
           cap: "The survivor put on a construction grid: circles, centres and a clear-space rule, drawn so any vendor can rebuild it without me.",
           meta: ["R 60 / R 34", "clear space 1×R"] },
@@ -1629,9 +1610,7 @@ if (!small && actId === "contact") {
                  ["PNG", "raster master, 4 sizes"]],
           cap: "Day-one kit: the mark, the grid, the cut path and the colours — outlined, named and versioned so the first print is the right print.",
           meta: ["4 files", "v1.0", "day one"] },
-        { n: "Day one", kind: "photo", img: "media/case/collateral.avif", tag: "HANDOVER",
-          cap: "Collateral, fascia artwork and the brand sheet handed over together. The client prints without calling me — that is the deliverable.",
-          meta: ["brand sheet A4", "calls after: 0"] }
+
       ] },
     { key: "D", title: "Designing", tech: "Architectural CNC", client: "±0.5 mm over 2400 mm",
       stages: [
@@ -1657,15 +1636,7 @@ if (!small && actId === "contact") {
                  ["Tabs", "0.5 mm"]],
           cap: "One setup, one bit, one sheet. The tooling sheet is printed and taped to the machine — because the machine does not read emails.",
           meta: ["⌀6 bit", "1 setup"] },
-        { n: "Cutting", kind: "photo", img: "media/work/d_cnc.avif", tag: "BED · SHEET 03",
-          cap: "Sheet 03 of 11 cutting. Extraction on, tabs holding, operator listening — the machine tells you before the caliper does.",
-          meta: ["sheet 03/11"] },
-        { n: "QC", kind: "photo", img: "media/case/qc_caliper.avif", tag: "QC · FIRST + LAST",
-          cap: "First article and last article measured across the 2 400 mm diagonal. Tolerance held at ±0.5 mm and logged on the sheet.",
-          meta: ["±0.5 mm", "2 400 diag"] },
-        { n: "Dispatch", kind: "photo", img: "media/case/dispatch_stack.avif", tag: "BAY · LABELLED",
-          cap: "Kitted, edge-protected and labelled to elevation. The router file, the drawing and the stack leave the bay together.",
-          meta: ["11 sheets", "1 bay"] }
+
       ] },
     { key: "E", title: "Execution", tech: "Digital–Physical integration", client: "350 cd/m² · 6500 K · ΔE ≤ 3.0",
       stages: [
@@ -1682,12 +1653,8 @@ if (!small && actId === "contact") {
                  ["PSU load", "≤ 80%", "78%"]],
           cap: "The spec is a contract with the client eye. Measured on the face at night, not promised in a mail.",
           meta: ["352 cd/m²", "ΔE 2.1"] },
-        { n: "Fabrication", kind: "photo", img: "media/case/psu_wiring.avif", tag: "BENCH · LOOM",
-          cap: "Looms made on the bench and labelled at both ends, PSU load balanced at 78% so the box runs cool through an Indore May.",
-          meta: ["6 looms", "load 78%"] },
-        { n: "Marriage", kind: "photo", img: "media/case/screen_up.avif", tag: "SITE · SCREEN UP",
-          cap: "Backlit fascia and live screen detailed to the same 12 mm reveal, so they read as one continuous surface — not a sign standing next to a TV.",
-          meta: ["reveal 12 mm", "1 surface"] },
+
+
         { n: "Calibration", kind: "sheet",
           doc: "CALIBRATION · 10 PATCHES",
           head: ["Patch", "Screen", "Fascia", "ΔE"],
@@ -1698,9 +1665,7 @@ if (!small && actId === "contact") {
                  ["10 black", "0.4", "0.5", "1.1"]],
           cap: "Screen calibrated to the fascia, not to the room: ten patches, meter on the face, at night, with the mall lights as they will be.",
           meta: ["10 patches", "ΔE 2.1"] },
-        { n: "Live", kind: "photo", img: "media/work/e_integration.avif", tag: "LIVE · NIGHT",
-          cap: "One surface at night. The client stopped measuring and just looked at it — which is the only acceptance test that matters.",
-          meta: ["ΔE 2.1", "1 surface"] }
+
       ] }
   ];
 
@@ -1715,7 +1680,7 @@ if (!small && actId === "contact") {
     '<figure class="xc-stage"><div class="xc-visual" id="xc-vis"></div>' +
     '<figcaption class="xc-cap"><div class="xc-cn" id="xc-cn"></div>' +
     '<p id="xc-cap"></p><div class="xc-meta" id="xc-meta"></div></figcaption></figure></div>' +
-    '<div class="xc-foot">← → or scroll to flip the board · every drawing is issued, every photo is from the site</div>';
+    '<div class="xc-foot">← → or scroll to flip the board · every board carries its source label — photo, file, drawing or campaign visual</div>';
   body.appendChild(caseEl);
 
   var caseOpen = false, caseI = 0, caseK = 0, caseBusy = 0;
@@ -1735,7 +1700,7 @@ if (!small && actId === "contact") {
   }
   function visualHTML(st) {
     if (st.kind === "photo")
-      return '<div class="xc-ph"><img src="' + st.img + '" alt="' + st.n + ' — site documentation" decoding="async">' +
+      return '<div class="xc-ph"><img src="' + st.img + '" alt="' + st.n + ' — ' + (st.tag || "documentation") + '" decoding="async">' +
         '<span class="xc-tag">' + (st.tag || "") + "</span>" +
         '<span class="xc-crop"></span></div>';
     if (st.kind === "draw") return '<div class="xc-dw">' + DW[st.draw]() + "</div>";
@@ -2050,4 +2015,118 @@ if (!small && actId === "contact") {
   });
   var dl = q1("#rDl");
   if (dl) dl.insertAdjacentHTML("afterbegin", use("card"));
+})();
+
+/* ═════════ 29 · SMOOTH-SCRUB GUARD ═════════
+   Turntable frames are WebP (fast decode) — and we still warm every
+   frame during idle time so the first scrub never pays a decode:
+   chunked img.decode() off the critical path, silence failures.   */
+(function () {
+  var ims = Array.prototype.slice.call(document.querySelectorAll("#film .fr, #film img"));
+  var i = 0;
+  function step(deadline) {
+    while (i < ims.length && (!deadline || deadline.timeRemaining() > 6)) {
+      (function (im) {
+        im.decoding = "async";
+        if (im.decode) im.decode().catch(function () {});
+      })(ims[i++]);
+    }
+    if (i < ims.length) schedule();
+  }
+  function schedule() {
+    if (window.requestIdleCallback) requestIdleCallback(step, { timeout: 1500 });
+    else setTimeout(function () { step(null); }, 240);
+  }
+  if (document.readyState === "complete") schedule();
+  else window.addEventListener("load", schedule);
+})();
+
+/* ═════════ 29b · ONE MASK, NOT FORTY-SIX ═════════
+   The edge-fade mask used to raster per frame-layer; now a single
+   gate div carries it and the frames sit plain inside — same look,
+   one masked layer for the compositor instead of 46.             */
+(function () {
+  var film = document.getElementById("film");
+  if (!film || film.querySelector(".x-gate")) return;
+  var gate = document.createElement("div");
+  gate.className = "x-gate";
+  while (film.firstChild) gate.appendChild(film.firstChild);
+  film.appendChild(gate);
+})();
+
+/* ═════════ 30 · WAVE 23 — ARTVISION CAMPAIGN IMAGERY (user-supplied) ═════════
+   Every photo board in the five service decks now comes from the user's
+   ArtViSiON A→E campaign document — all 52 stage images, in the document's
+   own order and with its own labels. Tags stay honest per wave-5:
+   SITE/WORKSHOP · PHOTO for captured frames, PRODUCTION FILE for cutting
+   and print file art, PROPOSED · RENDER for approval adaptations.
+   The drawn boards (shop drawings, cut lists) stay — they are drawings,
+   not photos, and slot in right after each recce.                    */
+(function () {
+  var CAMP = {"A": [{"n": "Site Recce & Measurement", "tag": "CAMPAIGN VISUAL", "cap": "Site Recce & Measurement", "img": "media/camp/a01.webp"}, {"n": "Print Artwork Processing", "tag": "PRODUCTION FILE", "cap": "Print Artwork Processing", "img": "media/camp/a02.webp"}, {"n": "CNC Cutting File", "tag": "PRODUCTION FILE", "cap": "CNC Cutting File", "img": "media/camp/a03.webp"}, {"n": "Approval — Site Before", "tag": "CAMPAIGN VISUAL", "cap": "Approval — Site Before", "img": "media/camp/a04.webp"}, {"n": "Approval — Adaptation After (Day)", "tag": "PROPOSED · RENDER", "cap": "Approval — Adaptation After (Day)", "img": "media/camp/a05.webp"}, {"n": "Approval — Adaptation After (Night)", "tag": "PROPOSED · RENDER", "cap": "Approval — Adaptation After (Night)", "img": "media/camp/a06.webp"}, {"n": "Workshop Production & Fabrication", "tag": "CAMPAIGN VISUAL", "cap": "Workshop Production & Fabrication", "img": "media/camp/a07.webp"}, {"n": "Overnight Site Installation", "tag": "CAMPAIGN VISUAL", "cap": "Overnight Site Installation", "img": "media/camp/a08.webp"}, {"n": "Final Execution — Portal, Morning", "tag": "CAMPAIGN VISUAL", "cap": "Final Execution — Portal, Morning", "img": "media/camp/a09.webp"}, {"n": "Final Execution — Stand & Stage", "tag": "CAMPAIGN VISUAL", "cap": "Final Execution — Stand & Stage", "img": "media/camp/a10.webp"}], "B": [{"n": "From artwork file to finished in-shop branding", "tag": "CAMPAIGN · ART", "cap": "From artwork file to finished in-shop branding — Retail graphics, file se production tak", "img": "media/camp/b11.webp"}, {"n": "From artwork file to finished in-shop branding", "tag": "CAMPAIGN · ART", "cap": "From artwork file to finished in-shop branding — Sheet acrylic se 3D / embossed effect letters kaise bante hain", "img": "media/camp/b12.webp"}, {"n": "Site Recce — Shopfront Measurement", "tag": "CAMPAIGN VISUAL", "cap": "Site Recce — Shopfront Measurement", "img": "media/camp/b13.webp"}, {"n": "Master Ratio Print Processing", "tag": "PRODUCTION FILE", "cap": "Master Ratio Print Processing", "img": "media/camp/b14.webp"}, {"n": "CNC ACP Fascia Cutting File", "tag": "PRODUCTION FILE", "cap": "CNC ACP Fascia Cutting File", "img": "media/camp/b15.webp"}, {"n": "Approval — Shopfront Before", "tag": "CAMPAIGN VISUAL", "cap": "Approval — Shopfront Before", "img": "media/camp/b16.webp"}, {"n": "Approval — Adaptation After (Day)", "tag": "PROPOSED · RENDER", "cap": "Approval — Adaptation After (Day)", "img": "media/camp/b17.webp"}, {"n": "Approval — Adaptation After (Night)", "tag": "PROPOSED · RENDER", "cap": "Approval — Adaptation After (Night)", "img": "media/camp/b18.webp"}, {"n": "Production — Batch Fabrication", "tag": "CAMPAIGN VISUAL", "cap": "Production — Batch Fabrication", "img": "media/camp/b19.webp"}, {"n": "Site — Shopfront Installation", "tag": "CAMPAIGN VISUAL", "cap": "Site — Shopfront Installation", "img": "media/camp/b20.webp"}, {"n": "Final Execution — Flagship Store Live", "tag": "CAMPAIGN VISUAL", "cap": "Final Execution — Flagship Store Live", "img": "media/camp/b21.webp"}, {"n": "Final Execution — Multi-Format Rollout", "tag": "CAMPAIGN VISUAL", "cap": "Final Execution — Multi-Format Rollout", "img": "media/camp/b22.webp"}], "C": [{"n": "Site Recce — Studio Measurement", "tag": "CAMPAIGN VISUAL", "cap": "Site Recce — Studio Measurement", "img": "media/camp/c23.webp"}, {"n": "Construction Grid Print Processing", "tag": "PRODUCTION FILE", "cap": "Construction Grid Print Processing", "img": "media/camp/c24.webp"}, {"n": "Die-Cut / Laser Cutting File", "tag": "PRODUCTION FILE", "cap": "Die-Cut / Laser Cutting File", "img": "media/camp/c25.webp"}, {"n": "Approval — Studio Before", "tag": "CAMPAIGN VISUAL", "cap": "Approval — Studio Before", "img": "media/camp/c26.webp"}, {"n": "Approval — Adaptation After (Day)", "tag": "PROPOSED · RENDER", "cap": "Approval — Adaptation After (Day)", "img": "media/camp/c27.webp"}, {"n": "Approval — Adaptation After (Night)", "tag": "PROPOSED · RENDER", "cap": "Approval — Adaptation After (Night)", "img": "media/camp/c28.webp"}, {"n": "Production — Print & Laser Packaging", "tag": "CAMPAIGN VISUAL", "cap": "Production — Print & Laser Packaging", "img": "media/camp/c29.webp"}, {"n": "Site — Studio Installation", "tag": "CAMPAIGN VISUAL", "cap": "Site — Studio Installation", "img": "media/camp/c30.webp"}, {"n": "Final Execution — Studio Day-One Live", "tag": "CAMPAIGN VISUAL", "cap": "Final Execution — Studio Day-One Live", "img": "media/camp/c31.webp"}, {"n": "Final Execution — Day-One Identity System", "tag": "CAMPAIGN VISUAL", "cap": "Final Execution — Day-One Identity System", "img": "media/camp/c32.webp"}], "D": [{"n": "Site Recce — Elevation Measurement", "tag": "CAMPAIGN VISUAL", "cap": "Site Recce — Elevation Measurement", "img": "media/camp/d33.webp"}, {"n": "Vector Geometry Print Proofing", "tag": "PRODUCTION FILE", "cap": "Vector Geometry Print Proofing", "img": "media/camp/d34.webp"}, {"n": "CNC Router Toolpath File", "tag": "PRODUCTION FILE", "cap": "CNC Router Toolpath File", "img": "media/camp/d35.webp"}, {"n": "Approval — Wall Before", "tag": "CAMPAIGN VISUAL", "cap": "Approval — Wall Before", "img": "media/camp/d36.webp"}, {"n": "Approval — Adaptation After (Day)", "tag": "PROPOSED · RENDER", "cap": "Approval — Adaptation After (Day)", "img": "media/camp/d37.webp"}, {"n": "Approval — Adaptation After (Night)", "tag": "PROPOSED · RENDER", "cap": "Approval — Adaptation After (Night)", "img": "media/camp/d38.webp"}, {"n": "Production — CNC Router Machining", "tag": "CAMPAIGN VISUAL", "cap": "Production — CNC Router Machining", "img": "media/camp/d39.webp"}, {"n": "Site — CNC Panel Installation", "tag": "CAMPAIGN VISUAL", "cap": "Site — CNC Panel Installation", "img": "media/camp/d40.webp"}, {"n": "Final Execution — Atrium CNC Live", "tag": "CAMPAIGN VISUAL", "cap": "Final Execution — Atrium CNC Live", "img": "media/camp/d41.webp"}, {"n": "Final Execution — Macro Tolerance Detail", "tag": "CAMPAIGN VISUAL", "cap": "Final Execution — Macro Tolerance Detail", "img": "media/camp/d42.webp"}], "E": [{"n": "Site Recce & Measurement", "tag": "CAMPAIGN VISUAL", "cap": "Site Recce & Measurement", "img": "media/camp/e43.webp"}, {"n": "Digital Print & Sync Processing", "tag": "PRODUCTION FILE", "cap": "Digital Print & Sync Processing", "img": "media/camp/e44.webp"}, {"n": "CNC Bezel Fabrication File", "tag": "CAMPAIGN · ART", "cap": "CNC Bezel Fabrication File", "img": "media/camp/e45.webp"}, {"n": "Approval — Site Before", "tag": "CAMPAIGN VISUAL", "cap": "Approval — Site Before", "img": "media/camp/e46.webp"}, {"n": "Approval — Adaptation After (Day)", "tag": "PROPOSED · RENDER", "cap": "Approval — Adaptation After (Day)", "img": "media/camp/e47.webp"}, {"n": "Approval — Adaptation After (Night)", "tag": "PROPOSED · RENDER", "cap": "Approval — Adaptation After (Night)", "img": "media/camp/e48.webp"}, {"n": "Production — Backlit & Screen Integration", "tag": "CAMPAIGN VISUAL", "cap": "Production — Backlit & Screen Integration", "img": "media/camp/e49.webp"}, {"n": "Site — Installation & Commissioning", "tag": "CAMPAIGN VISUAL", "cap": "Site — Installation & Commissioning", "img": "media/camp/e50.webp"}, {"n": "Final Execution — Continuous Surface Live", "tag": "CAMPAIGN VISUAL", "cap": "Final Execution — Continuous Surface Live", "img": "media/camp/e51.webp"}, {"n": "ArtViSiON — PRODUCTion · DESiGN", "tag": "CAMPAIGN · ART", "cap": "ArtViSiON — PRODUCTion · DESiGN", "img": "media/camp/e52.webp"}]};
+  (window.X.CASES || []).forEach(function (c) {
+    var camp = CAMP[c.key]; if (!camp) return;
+    var drawn = c.stages.filter(function (st) { return st.kind !== "photo"; });
+    c.stages = camp.slice(0, 1).concat(drawn, camp.slice(1).map(function (b) {
+      return { n: b.n, kind: "photo", img: b.img, tag: b.tag, cap: b.cap, meta: [] };
+    }));
+    c.stages[0] = { n: camp[0].n, kind: "photo", img: camp[0].img, tag: camp[0].tag,
+                    cap: camp[0].cap, meta: [] };
+  });
+})();
+
+/* ═════════ 31 · CAPABILITY CHIPS — NEW TOOL GLYPHS (user's list) ═════════
+   The 03 — Capability row gained six user-named tools: Affinity, Canva,
+   Microsoft Office, GitHub, Wix and Printing Machine. Each gets a glyph
+   drawn in the same house style as block 28 — 24×24 grid, 1.5 u stroke,
+   butt caps, mitre joins, exactly one #E30613 accent per mark — and is
+   set into its chip exactly like the original pictogram set.          */
+(function () {
+  var S = function (id, inner) {
+    return '<symbol id="pi2-' + id + '" viewBox="0 0 24 24" stroke-linecap="butt" stroke-linejoin="miter">' + inner + '</symbol>';
+  };
+  var sprite = '<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">' +
+    S("affinity", '<path d="M12 3 L20.5 19.5 L3.5 19.5 Z" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="12" y1="3" x2="12" y2="10" stroke="currentColor" stroke-width="0.75"/><circle cx="12" cy="14" r="2.6" fill="none" stroke="#E30613" stroke-width="1.5"/>') +
+    S("canva", '<path d="M17.8 7.2 A 7.6 7.6 0 1 0 17.8 16.8" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="12" y1="12" x2="16.5" y2="12" stroke="currentColor" stroke-width="0.75"/><circle cx="19.6" cy="12" r="1.7" fill="#E30613"/>') +
+    S("office", '<rect x="3" y="4" width="12" height="16" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="15" y="7" width="6" height="10" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="6" y="8" width="4.5" height="4.5" fill="#E30613"/><line x1="6" y1="16" x2="12" y2="16" stroke="currentColor" stroke-width="0.75"/>') +
+    S("github", '<circle cx="7" cy="5.5" r="2.2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="7" cy="18.5" r="2.2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="17" cy="7.5" r="2.2" fill="none" stroke="#E30613" stroke-width="1.5"/><line x1="7" y1="7.7" x2="7" y2="16.3" stroke="currentColor" stroke-width="1.5"/><path d="M17 9.7 C17 14 7 12.5 7 16.3" fill="none" stroke="currentColor" stroke-width="1.5"/>') +
+    S("wix", '<rect x="3" y="4" width="18" height="16" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="3" y1="8" x2="21" y2="8" stroke="currentColor" stroke-width="0.75"/><polyline points="7,11.5 9.5,16.5 12,11.5 14.5,16.5 17,11.5" fill="none" stroke="#E30613" stroke-width="1.5"/>') +
+    S("press", '<rect x="4" y="3" width="16" height="7" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="14" r="2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="16" cy="14" r="2" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="10" y1="14" x2="14" y2="14" stroke="currentColor" stroke-width="0.75"/><rect x="7" y="17.5" width="10" height="3.5" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="6.5" r="1.4" fill="#E30613"/>') +
+    S("pack", '<path d="M4 8 L7 4 L17 4 L20 8" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="4" y="8" width="16" height="12" fill="none" stroke="currentColor" stroke-width="1.5"/><line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="0.75"/><line x1="12" y1="8" x2="12" y2="20" stroke="#E30613" stroke-width="1.5"/>') +
+    '</svg>';
+  document.body.insertAdjacentHTML("afterbegin", sprite);
+  var use = function (id) { return '<svg class="pi" aria-hidden="true"><use href="#pi2-' + id + '"/></svg>'; };
+  var M = { "Affinity": "affinity", "Canva": "canva", "Microsoft Office": "office",
+            "GitHub": "github", "Wix": "wix", "Printing Machine": "press",
+            "Product and Packaging": "pack" };
+  Array.prototype.slice.call(document.querySelectorAll("#s-skills .chip")).forEach(function (c) {
+    var k = M[c.textContent.trim()];
+    if (k && !c.querySelector(".pi")) c.insertAdjacentHTML("afterbegin", use(k));
+  });
+})();
+
+/* ═════════ 32 · DECK PREWARM — instant board flips (wave 26) ═════════
+   Opening a service deck now warms every photo board of that case in
+   idle time (fetch + decode), so arrow/scroll flips paint from memory
+   instead of waiting on the network. Still images only; drawings and
+   sheets are inline SVG and cost nothing.                             */
+(function () {
+  var X = window.X; if (!X || !X.openCase || !X.CASES) return;
+  var idle = window.requestIdleCallback || function (f) { setTimeout(f, 350); };
+  var warmed = {};
+  function warm(ci) {
+    if (warmed[ci]) return; warmed[ci] = 1;
+    var c = X.CASES[ci]; if (!c) return;
+    idle(function () {
+      (c.stages || []).forEach(function (st) {
+        if (st.kind !== "photo" || !st.img) return;
+        var im = new Image();
+        im.decoding = "async";
+        im.src = st.img;
+        if (im.decode) im.decode().catch(function () {});
+      });
+    }, { timeout: 2500 });
+  }
+  var oc = X.openCase;
+  X.openCase = function (i) { var r = oc.apply(this, arguments); warm(i); return r; };
 })();

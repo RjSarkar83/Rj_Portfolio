@@ -579,7 +579,7 @@ body.x-cased { overflow: hidden; }
 .xc-visual.in > * { opacity: 1; transform: none; }
 /* photo board */
 .xc-ph { background: #000; }
-.xc-ph img { width: 100%; height: 100%; object-fit: cover; filter: saturate(.94) contrast(1.04); }
+.xc-ph img { width: 100%; height: 100%; object-fit: contain; filter: saturate(.94) contrast(1.04); }
 .xc-ph .xc-tag {
   position: absolute; left: 0; top: 0; background: var(--red, #E30613); color: #fff;
   font: 700 .62rem/1 var(--mono, ui-monospace, monospace); letter-spacing: .18em; padding: .42rem .6rem;
@@ -716,9 +716,13 @@ body {
 .hi { font-family: var(--gsans); font-weight: 400; font-size: .78rem; letter-spacing: .46em; }
 .big {
   font-family: var(--serif); font-weight: 500; letter-spacing: -.018em;
-  line-height: .92; font-size: clamp(3.4rem, 11.5vw, 10rem);
+  line-height: .92; font-size: clamp(2.6rem, 8.2vw, 6.8rem);
 }
 .big .l2 { font-style: italic; font-weight: 500; }
+/* wave-20: user order — RANJAN sets in Montserrat (geometric, 700),
+   SARKAR keeps the Playfair italic: sans/serif lockup, one red line */
+.big .l1 { font-family: var(--gsans); font-weight: 700; letter-spacing: -.03em; font-style: normal; }
+#loader .ln .x-mt { font-family: var(--gsans); font-weight: 700; letter-spacing: -.01em; font-style: normal; }
 .rolerow .r { font-family: var(--serif); font-style: italic; font-weight: 500; font-size: 1.06rem; letter-spacing: .01em; }
 .rolerow .st, .x-cred { font-family: var(--gsans); font-weight: 500; font-size: .66rem; letter-spacing: .3em; text-transform: uppercase; }
 
@@ -960,7 +964,7 @@ body:has(#s-work.on) #x-lux { opacity: 0 !important; transition: opacity .45s ea
        crops a little instead of the dock sitting on the card */
     margin-top: 3.4rem; }
   .x-e .imw { flex: 1 1 auto; min-height: 0; }
-  .x-e .im  { height: 100%; aspect-ratio: auto; object-fit: cover; }
+  .x-e .im  { height: 100%; aspect-ratio: auto; object-fit: contain; background: #100c09; }
   .x-e .bd  { flex: 0 0 auto; }
   .x-e .ln  { display: block; -webkit-line-clamp: unset; -webkit-box-orient: initial; overflow: visible; }
 }
@@ -999,11 +1003,60 @@ body:has(#s-work.on) #x-lux { opacity: 0 !important; transition: opacity .45s ea
 .chip .pi { width: 11px; height: 11px; color: rgba(237,232,223,.58); }
 .dl .pi { width: 13px; height: 13px; margin-right: .5rem; vertical-align: -2px; color: #f5efe7; }
 @media (min-width: 761px) {
-  #film video, #film .fr { width: 76%; height: 76%; }
+  #film .fr { width: 76%; height: 76%; }
 }
 
 /* wave-18: phones get the stepped-back figure too — the mask's edge
    fade swallows the smaller box, so the band still reads full-bleed */
 @media (max-width: 760px) {
-  #film video, #film .fr { width: 90%; height: 90%; }
+  #film .fr { width: 90%; height: 90%; }
+}
+
+/* ═══════════ 29 · SMOOTH-SCRUB PERF (user: atak-atak) ═══════════
+   1 · no permanent will-change on 46 frame layers;
+   2 · the fade mask lives on one gate layer, frames sit plain.   */
+#film .fr { will-change: auto; }
+#film .x-gate {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 76%; height: 76%;
+  -webkit-mask-image:
+    linear-gradient(to right, transparent 0, #000 11%, #000 89%, transparent 100%),
+    linear-gradient(to bottom, transparent 0, #000 9%, #000 91%, transparent 100%);
+  mask-image:
+    linear-gradient(to right, transparent 0, #000 11%, #000 89%, transparent 100%),
+    linear-gradient(to bottom, transparent 0, #000 9%, #000 91%, transparent 100%);
+}
+#film .x-gate > .fr, #film .x-gate > video {
+  position: absolute; top: 0; left: 0; transform: none;
+  width: 100%; height: 100%;
+  -webkit-mask-image: none; mask-image: none;
+}
+@media (max-width: 760px) {
+  #film .x-gate { width: 90%; height: 90%; }
+}
+
+/* ═══════════ 22 · WAVE 22 — BAR NAME, SCALE, STAGGERED NAME ═══════════
+   1 · top-left brand reads exactly "Rj_Sarkar" (no uppercase transform);
+   2 · the hero name steps down from 10rem to a calmer 6.8rem cap;
+   3 · scroll-in order: RANJAN lands first, SARKAR follows half a beat
+       later — the lockup introduces itself in two lines.          */
+#bar .nm { text-transform: none; letter-spacing: .16em; }
+#s-intro .big .l1, #s-intro .big .l2 {
+  opacity: 0; transform: translateY(.32em);
+  transition: opacity .7s ease, transform .7s cubic-bezier(.2, .8, .2, 1);
+}
+#s-intro.on .big .l1 { opacity: 1; transform: none; transition-delay: .05s; }
+#s-intro.on .big .l2 { opacity: 1; transform: none; transition-delay: .5s; }
+@media (prefers-reduced-motion: reduce) {
+  #s-intro .big .l1, #s-intro .big .l2 { transition: none; transform: none; opacity: 1; }
+}
+
+/* ═══ 30 · WAVE 27 — MOBILE GLASS OFF (butter-smooth on phones) ═══
+   backdrop-filter blur is the single most expensive paint on mobile
+   GPUs; under 760 px the surfaces are near-opaque anyway, so the blur
+   is dropped there and every scroll frame costs a plain composite.   */
+@media (max-width: 760px) {
+  .card, .chip, #disc, #x-dock, #x-dock button, #s-about .ab {
+    backdrop-filter: none; -webkit-backdrop-filter: none;
+  }
 }

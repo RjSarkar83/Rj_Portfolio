@@ -453,6 +453,52 @@ into the same pass).
   distribution loops, AI-search optimisation, measurement, 90-day targets).
 - QC: `qa/sweep.mjs` clean after the head changes.
 
+## Wave 20 — RANJAN sets in Montserrat (user order)
+
+- Hero name lockup: `.big .l1` (RANJAN) → Montserrat 700, tight -.03em;
+  `.l2` (SARKAR) keeps Playfair italic 500 in red — sans/serif pairing.
+  Loader name (`#ldName`) gets the same split via a `.x-mt` span in
+  `index.html`. Top-bar `.nm` was already Montserrat.
+- QC: `qa/shoot16.mjs` → `qa/95-intro-1440/390.png`, `ERRORS []`.
+- `Rj_Portfolio-github.zip` rebuilt.
+
+## Wave 21 — smooth-scroll pass (user: site atak-atak chal raha tha)
+
+Root cause: AVIF turntable frames decoded on first scrub — each decode is a
+discrete hitch ("atak-atak"), not uniform slowness. Fixes, all look-identical:
+1. **Frames AVIF → WebP q78** (fast-decode codec for a scrubbed sequence;
+   stills — work/case boards, og — stay AVIF). 46 frames = 720 KB total.
+2. **Opacity loop change-detection** (`renderPos`): two style writes per tick
+   instead of forty-six.
+3. **One mask, not forty-six:** the edge-fade mask moved from every frame
+   layer to a single `.x-gate` wrapper (enhance.js 29b IIFE); frames also lost
+   permanent `will-change`.
+4. **Idle pre-decode:** chunked `img.decode()` via requestIdleCallback so even
+   the first scrub never pays a decode.
+5. Preload link flipped to the WebP first frame.
+- Measurement: `qa/probe11.mjs` (rAF deltas) + `qa/probe12.mjs` (longtasks):
+  main thread now **0 longtasks** through the film bands; headless rAF numbers
+  remain high only because the sandbox rasterises without a GPU.
+- QC: sweep + work/about bands re-shot, `ERRORS []`, fade look unchanged
+  (`qa/90-work-1440.png`).
+- `Rj_Portfolio-github.zip` rebuilt.
+
+## Wave 22 — bar brand, name scale, staggered intro (user order)
+
+- Top-left brand now reads exactly **`Rj_Sarkar`**: new `config.js barName`
+  field (single content surface), `app.js` prefers it for `#barName`, and
+  `#bar .nm` drops the uppercase transform.
+- Hero name scaled down: `.big` cap 10rem → **6.8rem** (clamp 2.6–8.2vw).
+- Scroll-in order: **RANJAN lands first, SARKAR follows ~0.5s later**
+  (`#s-intro .big .l1/.l2` opacity+rise transitions keyed to `.on`,
+  reduced-motion guard included). Verified mid-transition: l1 0.82 / l2 0.
+- Catch fixed: `app.js` rebuilds `#ldName` innerHTML, which had been wiping
+  the wave-20 loader span — loader RANJAN now wrapped in `.x-mt` at the
+  source, so the loader lockup matches the hero (Montserrat / serif italic).
+- QC: `qa/probe13.mjs` (stagger + brand probe), `qa/shoot16.mjs`,
+  `qa/96-intro-mid/end.png`, `ERRORS []`.
+- `Rj_Portfolio-github.zip` rebuilt.
+
 ## Deploy to your GitHub Pages repo
 
 1. Copy `enhance.css` and `enhance.js` into the repo root (next to `style.css`).
@@ -470,3 +516,39 @@ That is the entire change. `config.js` keeps driving all copy; the layer reads i
 Remove the two lines and the site is exactly what it was.
 
 Console handle for poking at it: `X.setMode('draw') · X.setMode('lit') · X.to(26.5) · X.sound`.
+
+## Wave 23 — ArtViSiON campaign imagery (user-supplied)
+
+- Source: user-attached `ArtViSiON_A_to_E_Campaign.html` (self-contained, 7.4 MB). All 53 embedded WebP frames extracted to `media/camp/` (`cover00`, `a01–a10`, `b11–b22`, `c23–c32`, `d33–d42`, `e43–e52`; 5.2 MB). Duplicate `data-key` payloads (lightbox re-uses) resolve to the same file, so the document's 52 stage images + hero are all present and each is used exactly once.
+- `enhance.js` block 30 rebuilds each service deck from the campaign: photo boards are replaced 1:1 by the campaign's own stage sequence and labels for that service; the hand-drawn shop-drawing / cut-list / sheet boards are kept (they are drawings, not photos) and slot in after each recce. Stage captions and meta chips of kept boards are untouched, per user: details stay as in `index.html`.
+- Service card heroes in `config.js` now point at each service's "Final Execution" campaign frame (`a09/b21/c31/d41/e51`); `media/work/` and `media/case/` deleted — no old service image survives. `media/og.jpg` regenerated from the campaign hero `cover00`.
+- Honesty (wave-5 rules): campaign frames are labelled **CAMPAIGN VISUAL**; cutting/print file art **PRODUCTION FILE**; approval adaptations **PROPOSED · RENDER**; deck footer now reads "every board carries its source label — photo, file, drawing or campaign visual". Alt text carries the same tag.
+- QA: `qa/probe14.mjs` opens deck A (13 stages), screenshots stage 1 and 5; sweep + shoot13 clean, zero 404s, zero console errors.
+
+## Wave 24 — Capability row updated (user's tool list)
+
+- `config.js` skills: added **Printing Machine, Canva, Microsoft Office, GitHub, Wix**; "Affinity Designer" widened to **Affinity** per user's wording. Order groups software first, production crafts after.
+- `enhance.js` block 31: six new pictograms drawn in the block-28 house style (24×24, 1.5 u stroke, butt/mitre, one `#E30613` accent each) — Affinity triangle+node, Canva open-C, Office doc+binder, GitHub branch, Wix window+W, press rollers+sheet — injected as a second sprite and set into the chips like the original set.
+- QA: `qa/probe15.mjs` scrubs to 03 — Capability at 1440 and 390, screenshots `qa/98-skills-*.png`; sweep + shoot13 clean.
+
+## Wave 25 — campaign images shown in full (user correction)
+
+- User: the wave-23 campaign frames were cropping left/right. Root cause was `object-fit: cover` on the display boxes, whose ratios (card 16:10, deck board ~1.45:1) differ from the campaign frames (mostly 1376×768, finals up to 2.5:1).
+- Fix: `object-fit: contain` on `.card .im` and `.x-e .im` (style.css / enhance.css desktop grid) and `.xc-ph img` (deck photo boards), each over a matching dark letterbox (`#100c09` on cards, existing `#000` on boards) so the full frame always reads edge-to-edge of the image itself, never cropped.
+- QA: `qa/probe16.mjs` (work band + deck stage 12 at 1440) and `qa/probe17.mjs` (work band at 390) → `qa/99-*.png`, all frames complete; sweep clean.
+
+## Wave 26 — speed pass, dead-code purge, final package (user order)
+
+- **Campaign weight:** all 52 stage WebPs re-encoded in place (same pixels, q70/m6): 5 253 KB → 2 704 KB. Card heroes now served from 640-wide thumbs `media/camp/t/*.webp` (~100 KB for all five instead of ~800 KB); decks still use full frames. Unused `cover00.webp` deleted (og.jpg already derived from it).
+- **Dead video path removed:** `film.mp4` never shipped, so `<video id="vid">`, `useVideo`, `probeFilm`, the seek branch in the rAF loop, the iOS gesture hook and every `#film video` CSS rule were pure dead weight — gone from index.html, app.js, style.css, enhance.css, enhance.js.
+- **Deck prewarm (block 32):** opening a service deck fetches + decodes every photo board of that case in idle time, so board flips paint from memory.
+- Measured (1440, full visitor scroll): **36 requests / 740 KB transfer, load 121 ms**; `probe12` = 0 longtasks ×3 runs; sweep/shoot13/probe14/15/17 all clean, zero console errors, zero 404s, zero orphan media files.
+
+## Wave 27 — butter-smooth scrub + capability add (user order)
+
+- **Capability:** chip "Product and Packaging" added (config.js) with a new house-style glyph `pi2-pack` (crate + red tape).
+- **x7_walk regenerated:** the old 90° profile frame read as a different character model; re-rendered from the set's own references (pose kept, face/proportions/lighting matched). `_m` mobile variant re-derived by the same centre-crop as the rest.
+- **Four turntable in-betweens added** — 157°, 112°, 67°, 22° (`x0a_turn157`, `x1c_turn112`, `x1d_turn67`, `x1e_turn22` + `_m`) generated between the existing 45°-spaced turn keys, so the opening rotation steps half as far per frame; timeline now 27 poses. Each ~10 KB WebP.
+- **Seam holds removed:** `renderStills` crossfade now spans the full segment (`smooth(u)`) instead of 5–95 %, so poses morph continuously with no micro-hold at every keyframe — the "jhatka" the user felt.
+- **Mobile glass off:** under 760 px every `backdrop-filter` blur (cards, chips, disclosure, dock, about strip) is dropped — plain composites instead of per-frame blur on phone GPUs.
+- QA: probe12 = 0 longtasks ×3; probe19 turn-grid `qa/100-turn-grid.png` shows even 22.5° progression; sweep/shoot13/probe15/17 clean.
