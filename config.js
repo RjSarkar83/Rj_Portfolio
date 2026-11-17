@@ -87,8 +87,32 @@ window.CONFIG = {
   email: "rjsarkar@icloud.com",
   phone: "+91 900 900 1551",
   links: [
-    { label: "Portfolio", url: "https://sites.google.com/view/rjsarkar" },
-    { label: "GitHub",    url: "https://rjsarkar83.github.io/Brand_Designer" }
+    { label: "WhatsApp",          url: "https://wa.me/919009001551" },
+    { label: "Book Call",         url: "https://calendar.app.google/d3TCsSmo86y5ZgjQ6" },
+    { label: "Studio Map",        url: "https://maps.app.goo.gl/RpijstQ77Azg91E28" },
+    { label: "Brand Card",        url: "https://rjsarkar83.github.io/Brand_Designer/" },
+    { label: "The Offer",         url: "https://sites.google.com/view/rj-sarkar/the-offer?authuser=0" },
+    { label: "LinkedIn",          url: "https://www.linkedin.com/in/rj-sarkar/" },
+    { label: "Behance",           url: "https://www.behance.net/ranjansark83" },
+    { label: "Behance Studio",    url: "https://www.behance.net/artvision_p_design" },
+    { label: "Instagram",         url: "https://www.instagram.com/artvision_studion/" },
+    { label: "Facebook",          url: "https://www.facebook.com/ArtvisionDesign" },
+    { label: "X / Twitter",       url: "https://x.com/rj_sarkar83" },
+    { label: "Reddit",            url: "https://www.reddit.com/user/RjSarkar83/" }
+  ],
+  ecosystem: [
+    { label: "ArtViSiON STUDiON", url: "https://rjsarkar83.github.io/ArtViSiON_STUDiON/" },
+    { label: "ArtViSiON-STUDiO",  url: "https://rjsarkar83.github.io/ArtViSiON-STUDiO/" },
+    { label: "Vector Portfolio",  url: "https://rjsarkar83.github.io/vector-portfolio/" },
+    { label: "360° Showroom",     url: "https://rjsarkar83.github.io/360-services/" },
+    { label: "Brand Portfolio",   url: "https://rjsarkar83.github.io/portfolio/" },
+    { label: "Display Counter",   url: "https://rjsarkar83.github.io/Counter/" },
+    { label: "DesiMuseum",        url: "https://rjsarkar83.github.io/ArtVision_DesiMuseum/" },
+    { label: "Designer’s Menu",   url: "https://rjsarkar83.github.io/DesignersMenu/" },
+    { label: "Vastu Camera",      url: "https://rjsarkar83.github.io/vastu_camera/" },
+    { label: "ReadOn",            url: "https://rjsarkar83.github.io/ReadOn/" },
+    { label: "Gold Calculator",   url: "https://rjsarkar83.github.io/mlsk/" },
+    { label: "Relax-Indore",      url: "https://rjsarkar83.github.io/Run-Indore/Run-Indore.html" }
   ],
   contactTitle: "LET'S BUILD<br>SOMETHING REAL.",
 

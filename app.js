@@ -61,10 +61,24 @@
   $("#cMail").textContent = C.email;
   $("#cMail").href = "mailto:" + C.email;
   $("#cLinks").innerHTML =
-    '<a href="tel:' + C.phone.replace(/\s/g, "") + '">' + C.phone + '</a>' +
-    C.links.map(function (l) {
-      return '<a href="' + l.url + '" target="_blank" rel="noopener">' + l.label + ' ↗</a>';
-    }).join("");
+    '<div class="clinks-grp">' +
+      '<div class="clinks-lbl">Connect &amp; Social</div>' +
+      '<div class="clinks-row">' +
+        '<a href="tel:' + C.phone.replace(/\s/g, "") + '">' + C.phone + '</a>' +
+        C.links.map(function (l) {
+          return '<a href="' + l.url + '" target="_blank" rel="noopener noreferrer">' + l.label + ' ↗</a>';
+        }).join("") +
+      '</div>' +
+    '</div>' +
+    (C.ecosystem && C.ecosystem.length ?
+      '<div class="clinks-grp">' +
+        '<div class="clinks-lbl">ArtViSiON Ecosystem</div>' +
+        '<div class="clinks-row clinks-eco">' +
+          C.ecosystem.map(function (l) {
+            return '<a href="' + l.url + '" target="_blank" rel="noopener noreferrer">' + l.label + ' ↗</a>';
+          }).join("") +
+        '</div>' +
+      '</div>' : '');
 
   /* ───── 2. timeline: segments + holds (balanced scroll pacing) ───── */
   var D = C.filmDuration, H = C.holds;

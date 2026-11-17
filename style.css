@@ -168,12 +168,16 @@ h2{font-weight:900;letter-spacing:-.028em;line-height:1.08;font-size:clamp(1.85r
 #frameSvg rect{fill:none;stroke:var(--accent);stroke-width:2;
   stroke-dasharray:var(--dash);stroke-dashoffset:var(--dash)}
 .ctitle{font-weight:900;font-size:clamp(2.2rem,5.2vw,4.4rem);line-height:.98;letter-spacing:-.035em}
-.cmail{display:inline-block;margin-top:1.45rem;font-size:clamp(1.05rem,2vw,1.55rem);
+.cmail{display:inline-block;margin-top:1.25rem;font-size:clamp(1.05rem,2vw,1.55rem);
   text-decoration:none;border-bottom:2px solid var(--accent);padding-bottom:.2rem}
-.clinks{display:flex;gap:1.4rem;margin-top:1.55rem;flex-wrap:wrap}
-.clinks a{font-size:.76rem;letter-spacing:.17em;text-transform:uppercase;color:#b7afa4;
-  text-decoration:none;border-bottom:1px solid transparent;transition:all .25s}
+.clinks{display:flex;flex-direction:column;gap:1.05rem;margin-top:1.35rem;max-width:min(640px,50vw)}
+.clinks-grp{display:flex;flex-direction:column;gap:.45rem}
+.clinks-lbl{font-size:.64rem;letter-spacing:.22em;text-transform:uppercase;color:var(--accent);font-weight:700}
+.clinks-row{display:flex;gap:.5rem .95rem;flex-wrap:wrap}
+.clinks a{font-size:.74rem;letter-spacing:.15em;text-transform:uppercase;color:#c9c1b6;
+  text-decoration:none;border-bottom:1px solid rgba(245,239,231,.14);padding-bottom:.12rem;transition:all .25s}
 .clinks a:hover{color:var(--ink);border-color:var(--accent)}
+.clinks-eco a{font-size:.68rem;color:#9b948b}
 
 /* 3D view-angle readout */
 #angle{position:fixed;left:max(clamp(1rem,3.4vw,2.6rem),env(safe-area-inset-left,0px));
@@ -218,7 +222,8 @@ h2{font-weight:900;letter-spacing:-.028em;line-height:1.08;font-size:clamp(1.85r
   .paper{max-width:100%;max-height:58dvh;overflow-y:auto;overscroll-behavior:contain;padding:1.15rem 1.2rem}
   .ctitle{font-size:clamp(2rem,9.5vw,3.1rem)}
   .cmail{font-size:1.1rem;margin-top:1rem}
-  .clinks{margin-top:1rem;gap:1rem}
+  .clinks{margin-top:.9rem;gap:.75rem;max-width:100%;max-height:36dvh;overflow-y:auto;overscroll-behavior:contain;padding-right:.25rem}
+  .clinks-row{gap:.42rem .78rem}
   .big{font-size:clamp(2.6rem,13.5vw,4.4rem)}
   .rolerow{margin-top:1rem;gap:.6rem}
   .statrow{gap:1.25rem;margin-top:1.15rem}
