@@ -103,33 +103,47 @@ window.CONFIG = {
 
   /* keyframes: the film-second each still represents --------- */
   frames: [
-    { t: 0.0 , a: "180\u00b0 behind", hw: 0.067, src: "media/frames/x0_back.webp", m: "media/frames/x0_back_m.webp" },
-    { t: 1.2 , a: "157\u00b0 turning", hw: 0.076, src: "media/frames/x0a_turn157.webp", m: "media/frames/x0a_turn157_m.webp" },
-    { t: 2.4 , a: "135\u00b0 turning", hw: 0.086, src: "media/frames/x1a_turn135.webp", m: "media/frames/x1a_turn135_m.webp" },
-    { t: 3.3 , a: "112\u00b0 turning", hw: 0.081, src: "media/frames/x1c_turn112.webp", m: "media/frames/x1c_turn112_m.webp" },
-    { t: 4.2 , a: "90\u00b0 side", hw: 0.076, src: "media/frames/x1b_turn90.webp", m: "media/frames/x1b_turn90_m.webp" },
-    { t: 5.1 , a: "67\u00b0 turning", hw: 0.080, src: "media/frames/x1d_turn67.webp", m: "media/frames/x1d_turn67_m.webp" },
-    { t: 6.0 , a: "45\u00b0 three-qtr", hw: 0.083, src: "media/frames/x1_turn45.webp", m: "media/frames/x1_turn45_m.webp" },
-    { t: 6.8 , a: "22\u00b0 turning", hw: 0.076, src: "media/frames/x1e_turn22.webp", m: "media/frames/x1e_turn22_m.webp" },
-    { t: 7.6 , a: "0\u00b0 front", hw: 0.069, src: "media/frames/x2_front.webp", m: "media/frames/x2_front_m.webp" },
-    { t: 9.9 , a: "first step", hw: 0.079, src: "media/frames/x2a_step1.webp", m: "media/frames/x2a_step1_m.webp" },
-    { t: 12.2, a: "second step", hw: 0.079, src: "media/frames/x2b_step2.webp", m: "media/frames/x2b_step2_m.webp" },
-    { t: 14.6, a: "15\u00b0 medium", hw: 0.063, src: "media/frames/x3_steps.webp", m: "media/frames/x3_steps_m.webp" },
-    { t: 16.4, a: "reaching back", hw: 0.090, src: "media/frames/x3a_turnsit.webp", m: "media/frames/x3a_turnsit_m.webp" },
-    { t: 18.2, a: "lowering", hw: 0.085, src: "media/frames/x3b_lower.webp", m: "media/frames/x3b_lower_m.webp" },
-    { t: 20.0, a: "40\u00b0 seated", hw: 0.075, src: "media/frames/x4_sit.webp", m: "media/frames/x4_sit_m.webp" },
-    { t: 22.2, a: "leaning in", hw: 0.081, src: "media/frames/x4a_lean.webp", m: "media/frames/x4a_lean_m.webp" },
-    { t: 24.3, a: "desk arrives", hw: 0.168, src: "media/frames/x4b_deskin.webp", m: "media/frames/x4b_deskin_m.webp" },
-    { t: 26.5, a: "high front", hw: 0.168, src: "media/frames/x5_desk.webp", m: "media/frames/x5_desk_m.webp" },
-    { t: 29.0, a: "pushing back", hw: 0.168, src: "media/frames/x5a_push.webp", m: "media/frames/x5a_push_m.webp" },
-    { t: 30.2, a: "stepping out", hw: 0.213, src: "media/frames/x5b_stepout.webp", m: "media/frames/x5b_stepout_m.webp" },
-    { t: 31.5, a: "70\u00b0 standing", hw: 0.234, src: "media/frames/x6_stand.webp", m: "media/frames/x6_stand_m.webp" },
-    { t: 34.5, a: "80\u00b0 striding", hw: 0.303, src: "media/frames/x6a_stride.webp", m: "media/frames/x6a_stride_m.webp" },
-    { t: 37.5, a: "90\u00b0 profile", hw: 0.147, src: "media/frames/x7_walk.webp", m: "media/frames/x7_walk_m.webp" },
-    { t: 39.9, a: "reaching up", hw: 0.135, src: "media/frames/x7a_reach.webp", m: "media/frames/x7a_reach_m.webp" },
-    { t: 42.3, a: "25\u00b0 pulling", hw: 0.145, src: "media/frames/x8_pull.webp", m: "media/frames/x8_pull_m.webp" },
-    { t: 44.0, a: "arms lowering", hw: 0.093, src: "media/frames/x8a_lower.webp", m: "media/frames/x8a_lower_m.webp" },
-    { t: 45.7, a: "0\u00b0 wave", hw: 0.110, src: "media/frames/x9_wave.webp", m: "media/frames/x9_wave_m.webp" }
+    { t: 0.00, a: "180\u00b0 behind",     hw: 0.067, src: "media/frames/x0_back.webp",       m: "media/frames/x0_back_m.webp" },
+    { t: 0.45, a: "turning right",       hw: 0.076, src: "media/frames/x_spin_r157.webp",   m: "media/frames/x_spin_r157_m.webp" },
+    { t: 0.90, a: "running right",       hw: 0.147, src: "media/frames/x_run_right.webp",   m: "media/frames/x_run_right_m.webp" },
+    { t: 1.45, a: "striding right",      hw: 0.083, src: "media/frames/x_spin_r45.webp",    m: "media/frames/x_spin_r45_m.webp" },
+    { t: 1.95, a: "running into intro",  hw: 0.147, src: "media/frames/x_run_right.webp",   m: "media/frames/x_run_right_m.webp" },
+    { t: 2.40, a: "0\u00b0 front",       hw: 0.069, src: "media/frames/x2_front.webp",      m: "media/frames/x2_front_m.webp" },
+    { t: 2.62, a: "22\u00b0 spin",       hw: 0.076, src: "media/frames/x1e_turn22.webp",    m: "media/frames/x1e_turn22_m.webp" },
+    { t: 2.84, a: "45\u00b0 spin",       hw: 0.083, src: "media/frames/x1_turn45.webp",     m: "media/frames/x1_turn45_m.webp" },
+    { t: 3.06, a: "67\u00b0 spin",       hw: 0.080, src: "media/frames/x1d_turn67.webp",    m: "media/frames/x1d_turn67_m.webp" },
+    { t: 3.28, a: "90\u00b0 spin",       hw: 0.076, src: "media/frames/x1b_turn90.webp",    m: "media/frames/x1b_turn90_m.webp" },
+    { t: 3.50, a: "112\u00b0 spin",      hw: 0.081, src: "media/frames/x1c_turn112.webp",   m: "media/frames/x1c_turn112_m.webp" },
+    { t: 3.72, a: "135\u00b0 spin",      hw: 0.086, src: "media/frames/x1a_turn135.webp",   m: "media/frames/x1a_turn135_m.webp" },
+    { t: 3.94, a: "157\u00b0 spin",      hw: 0.076, src: "media/frames/x0a_turn157.webp",   m: "media/frames/x0a_turn157_m.webp" },
+    { t: 4.16, a: "180\u00b0 spin",      hw: 0.067, src: "media/frames/x0_back.webp",       m: "media/frames/x0_back_m.webp" },
+    { t: 4.38, a: "202\u00b0 spin",      hw: 0.076, src: "media/frames/x_spin_r157.webp",   m: "media/frames/x_spin_r157_m.webp" },
+    { t: 4.60, a: "270\u00b0 spin",      hw: 0.076, src: "media/frames/x_spin_r90.webp",    m: "media/frames/x_spin_r90_m.webp" },
+    { t: 4.80, a: "315\u00b0 spin",      hw: 0.083, src: "media/frames/x_spin_r45.webp",    m: "media/frames/x_spin_r45_m.webp" },
+    { t: 5.00, a: "360\u00b0 spin done", hw: 0.069, src: "media/frames/x2_front.webp",      m: "media/frames/x2_front_m.webp" },
+    { t: 5.30, a: "jump takeoff",        hw: 0.082, src: "media/frames/x_jump_crouch.webp", m: "media/frames/x_jump_crouch_m.webp" },
+    { t: 5.90, a: "jump + red waves",    hw: 0.115, src: "media/frames/x_jump_air.webp",    m: "media/frames/x_jump_air_m.webp" },
+    { t: 6.75, a: "landing",             hw: 0.093, src: "media/frames/x8a_lower.webp",     m: "media/frames/x8a_lower_m.webp" },
+    { t: 7.60, a: "0\u00b0 wave",        hw: 0.110, src: "media/frames/x9_wave.webp",       m: "media/frames/x9_wave_m.webp" },
+    { t: 8.60, a: "0\u00b0 front",       hw: 0.069, src: "media/frames/x2_front.webp",      m: "media/frames/x2_front_m.webp" },
+    { t: 9.90, a: "first step",          hw: 0.079, src: "media/frames/x2a_step1.webp",     m: "media/frames/x2a_step1_m.webp" },
+    { t: 12.2, a: "second step",         hw: 0.079, src: "media/frames/x2b_step2.webp",     m: "media/frames/x2b_step2_m.webp" },
+    { t: 14.6, a: "15\u00b0 medium",     hw: 0.063, src: "media/frames/x3_steps.webp",      m: "media/frames/x3_steps_m.webp" },
+    { t: 16.4, a: "reaching back",       hw: 0.090, src: "media/frames/x3a_turnsit.webp",   m: "media/frames/x3a_turnsit_m.webp" },
+    { t: 18.2, a: "lowering",            hw: 0.085, src: "media/frames/x3b_lower.webp",     m: "media/frames/x3b_lower_m.webp" },
+    { t: 20.0, a: "40\u00b0 seated",     hw: 0.075, src: "media/frames/x4_sit.webp",        m: "media/frames/x4_sit_m.webp" },
+    { t: 22.2, a: "leaning in",          hw: 0.081, src: "media/frames/x4a_lean.webp",      m: "media/frames/x4a_lean_m.webp" },
+    { t: 24.3, a: "desk arrives",        hw: 0.168, src: "media/frames/x4b_deskin.webp",    m: "media/frames/x4b_deskin_m.webp" },
+    { t: 26.5, a: "high front",          hw: 0.168, src: "media/frames/x5_desk.webp",       m: "media/frames/x5_desk_m.webp" },
+    { t: 29.0, a: "pushing back",        hw: 0.168, src: "media/frames/x5a_push.webp",      m: "media/frames/x5a_push_m.webp" },
+    { t: 30.2, a: "stepping out",        hw: 0.213, src: "media/frames/x5b_stepout.webp",   m: "media/frames/x5b_stepout_m.webp" },
+    { t: 31.5, a: "70\u00b0 standing",   hw: 0.234, src: "media/frames/x6_stand.webp",      m: "media/frames/x6_stand_m.webp" },
+    { t: 34.5, a: "80\u00b0 striding",   hw: 0.303, src: "media/frames/x6a_stride.webp",    m: "media/frames/x6a_stride_m.webp" },
+    { t: 37.5, a: "90\u00b0 profile",    hw: 0.147, src: "media/frames/x7_walk.webp",       m: "media/frames/x7_walk_m.webp" },
+    { t: 39.9, a: "reaching up",         hw: 0.135, src: "media/frames/x7a_reach.webp",     m: "media/frames/x7a_reach_m.webp" },
+    { t: 42.3, a: "25\u00b0 pulling",    hw: 0.145, src: "media/frames/x8_pull.webp",       m: "media/frames/x8_pull_m.webp" },
+    { t: 44.0, a: "arms lowering",       hw: 0.093, src: "media/frames/x8a_lower.webp",     m: "media/frames/x8a_lower_m.webp" },
+    { t: 45.7, a: "0\u00b0 wave",        hw: 0.110, src: "media/frames/x9_wave.webp",       m: "media/frames/x9_wave_m.webp" }
   ],
 
   /* ---------------------------------------------------------
@@ -137,17 +151,11 @@ window.CONFIG = {
      hold = the film freezes here so the section can be read.
      --------------------------------------------------------- */
   holds: [
-    { id: "intro",   at: 7.6,  from: 3.0,  to: 8.6  },
+    { id: "intro",   at: 7.6,  from: 2.3,  to: 8.6  },
     { id: "about",   at: 14.6, from: 10.2, to: 15.6 },
     { id: "work",    at: 26.5, from: 24.8, to: 28.8, mul: 1.7 },
     { id: "skills",  at: 37.5, from: 31.2, to: 39.2, mul: 1.2 },
     { id: "resume",  at: 42.3, from: 39.9, to: 43.6 },
     { id: "contact", at: 45.7, from: 44.4, to: 46.0 }
-  ],
-
-  /* AI disclosure — keep this. It is what makes the format safe. */
-  disclosure: "The character is a stylised 3D render of Ranjan Sarkar, built from his own " +
-              "photograph. The five service visuals are location reference photography " +
-              "(Pexels licence), not renders. The projects, drawings, tolerances and " +
-              "clients they describe are real work."
+  ]
 };

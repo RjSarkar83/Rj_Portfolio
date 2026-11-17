@@ -24,7 +24,6 @@
   $("#iStatus").textContent = C.city + " · " + C.status;
   $("#aTitle").textContent = C.aboutTitle;
   $("#aText").textContent = C.aboutText;
-  $("#dText").textContent = C.disclosure;
 
   $("#aStats").innerHTML = C.stats.map(function (s) {
     return '<div><div class="n">' + s.n + '</div><div class="l">' + s.l + '</div></div>';
@@ -67,21 +66,22 @@
       return '<a href="' + l.url + '" target="_blank" rel="noopener">' + l.label + ' ↗</a>';
     }).join("");
 
-  /* ───── 2. timeline: segments + holds ───── */
+  /* ───── 2. timeline: segments + holds (balanced scroll pacing) ───── */
   var D = C.filmDuration, H = C.holds;
-  var PPS = 108;                                    // scroll px per film-second
-  var HOLDPX = function () { return Math.round(window.innerHeight * 0.95); };
+  var SEG_PX = [1480, 860, 1080, 1020, 760, 680]; // evenly paced scroll distance per beat
+  var HOLDPX = function () { return Math.round(window.innerHeight * 0.78); };
   var blocks = [], i;
 
   function buildTimeline() {
     blocks = [];
     var prev = 0, hp = HOLDPX();
     for (i = 0; i < H.length; i++) {
-      blocks.push({ kind: "seg", t0: prev, t1: H[i].at, px: Math.max(120, (H[i].at - prev) * PPS) });
+      var segW = SEG_PX[i] || Math.max(360, (H[i].at - prev) * 120);
+      blocks.push({ kind: "seg", t0: prev, t1: H[i].at, px: segW });
       blocks.push({ kind: "hold", t0: H[i].at, t1: H[i].at, px: Math.round(hp * (H[i].mul || 1)), id: H[i].id });
       prev = H[i].at;
     }
-    if (prev < D) blocks.push({ kind: "seg", t0: prev, t1: D, px: (D - prev) * PPS });
+    if (prev < D) blocks.push({ kind: "seg", t0: prev, t1: D, px: Math.max(240, (D - prev) * 140) });
     var acc = 0;
     blocks.forEach(function (b) { b.s0 = acc; acc += b.px; b.s1 = acc; });
     return acc;
@@ -157,10 +157,11 @@
   }
 
   /* horizontal placement of the film over film-time (desktop only).
-     t=0 is the opening hero, so x starts at 0 — the back pose is dead centre —
-     and only slides right once the name fades in. */
-  var SHIFT = [[0, 0], [4.2, 12], [7.6, 26], [14.6, 17],
-               [26.5, 0], [37.5, 10], [42.3, -17], [45.7, 15], [46, 15]];
+     t=0 starts dead centre with back view (x0_back), then he runs RIGHT
+     from 0vw -> 26vw into Intro (t=2.4), performs 1-Round Spin + Jump
+     + Red Waves -> Wave at 26vw through t=7.6. */
+  var SHIFT = [[0, 0], [0.5, 4], [2.4, 26], [7.6, 26], [14.6, 17],
+               [26.5, 0], [37.5, 10], [42.3, -17], [45.7, 25], [46, 25]];
   function shiftAt(t) {
     if (mob()) return 0;
     for (var k = 0; k < SHIFT.length - 1; k++) {
@@ -178,7 +179,7 @@
   function clampShift(vwShift, hwFrac) {
     var vw = window.innerWidth, vh = window.innerHeight;
     var fw = (vw / vh < FILM_AR) ? vw * 1.035 : (vh * 1.035) * FILM_AR;
-    var maxPx = Math.max(0, (0.86 - 0.5 - hwFrac) * fw);
+    var maxPx = Math.max(0, (0.89 - 0.5 - hwFrac) * fw);
     var px = clamp(vwShift / 100 * vw, -maxPx, maxPx);
     return px / vw * 100;
   }
@@ -226,15 +227,115 @@
     var w = window.innerWidth, h = window.innerHeight;
     svg.setAttribute("viewBox", "0 0 " + w + " " + h);
     svg.setAttribute("width", w); svg.setAttribute("height", h);
-    var bw = mob() ? w * 0.74 : Math.min(h * 0.52, w * 0.3);
+    var bw = mob() ? Math.min(w * 0.72, h * 0.36) : Math.min(h * 0.52, w * 0.3);
     var bh = mob() ? h * 0.42 : h * 0.72;
-    var bx = mob() ? (w - bw) / 2 : w / 2 + (clampShift(shiftAt(45), hwAt(45)) / 100) * w - bw / 2;
-    var by = mob() ? h * 0.10 : (h - bh) / 2;
+    var bx = mob() ? (w - bw) / 2 : w / 2 + (clampShift(shiftAt(45.7), hwAt(45.7)) / 100) * w - bw / 2;
+    var by = mob() ? h * 0.11 : (h - bh) / 2;
     rct.setAttribute("x", bx); rct.setAttribute("y", by);
     rct.setAttribute("width", bw); rct.setAttribute("height", bh);
     var len = 2 * (bw + bh);
     rct.style.setProperty("--dash", len);
     rct.dataset.len = len;
+  }
+
+  /* ───── 5b. red foot-shockwave canvas (Jump + Red Waves beat) ───── */
+  var waveCv = document.createElement("canvas");
+  waveCv.id = "waveFx";
+  waveCv.style.cssText = "position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:4;";
+  var stageEl = $("#stage");
+  stageEl.insertBefore(waveCv, $("#vig"));
+  var waveCtx = waveCv.getContext("2d");
+
+  function drawRedWaves(t, shiftVw, liftPx) {
+    var vw = window.innerWidth, vh = window.innerHeight;
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    if (waveCv.width !== Math.round(vw * dpr) || waveCv.height !== Math.round(vh * dpr)) {
+      waveCv.width = Math.round(vw * dpr);
+      waveCv.height = Math.round(vh * dpr);
+    }
+    waveCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    waveCtx.clearRect(0, 0, vw, vh);
+
+    if (t >= 5.20 && t <= 6.85) {
+      var u = clamp((t - 5.20) / 1.65, 0, 1);
+      var cx = vw * 0.5 + (shiftVw / 100) * vw;
+      var cy = (mob() ? vh * 0.68 : vh * 0.84) + liftPx * 0.25;
+      var maxR = mob() ? vw * 0.44 : Math.min(vw * 0.30, vh * 0.46);
+
+      waveCtx.save();
+      waveCtx.globalCompositeOperation = "lighter";
+
+      var glowA = Math.sin(Math.PI * clamp(u * 1.15, 0, 1)) * 0.42;
+      var grd = waveCtx.createRadialGradient(cx, cy, 4, cx, cy, maxR * 0.65);
+      grd.addColorStop(0, "rgba(255, 40, 55, " + glowA.toFixed(3) + ")");
+      grd.addColorStop(0.5, "rgba(227, 6, 19, " + (glowA * 0.45).toFixed(3) + ")");
+      grd.addColorStop(1, "rgba(227, 6, 19, 0)");
+      waveCtx.fillStyle = grd;
+      waveCtx.beginPath();
+      waveCtx.ellipse(cx, cy, maxR * 0.72, maxR * 0.24, 0, 0, Math.PI * 2);
+      waveCtx.fill();
+
+      for (var r = 0; r < 3; r++) {
+        var ru = clamp((u - r * 0.16) / 0.72, 0, 1);
+        if (ru <= 0 || ru >= 1) continue;
+        var ease = 1 - Math.pow(1 - ru, 2.4);
+        var rx = 24 + ease * maxR;
+        var ry = rx * 0.26;
+        var alpha = Math.pow(1 - ru, 1.35) * 0.92;
+        waveCtx.strokeStyle = "rgba(227, 6, 19, " + alpha.toFixed(3) + ")";
+        waveCtx.lineWidth = Math.max(1.5, (1 - ru) * 5.5);
+        waveCtx.shadowColor = "#E30613";
+        waveCtx.shadowBlur = 18;
+        waveCtx.beginPath();
+        waveCtx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+        waveCtx.stroke();
+
+        waveCtx.strokeStyle = "rgba(255, 110, 120, " + (alpha * 0.55).toFixed(3) + ")";
+        waveCtx.lineWidth = Math.max(1, (1 - ru) * 2.0);
+        waveCtx.beginPath();
+        waveCtx.ellipse(cx, cy, rx * 0.92, ry * 0.92, 0, 0, Math.PI * 2);
+        waveCtx.stroke();
+      }
+
+      var burstA = Math.sin(Math.PI * clamp(u / 0.85, 0, 1));
+      if (burstA > 0.02) {
+        waveCtx.shadowBlur = 12;
+        for (var k = 0; k < 14; k++) {
+          var ang = (k / 14) * Math.PI * 2 + 0.22;
+          var r0 = (0.18 + 0.45 * u) * maxR;
+          var r1 = r0 + (18 + (k % 3) * 14) * burstA;
+          var x0 = cx + Math.cos(ang) * r0;
+          var y0 = cy + Math.sin(ang) * r0 * 0.30 - burstA * (8 + (k % 4) * 6);
+          var x1 = cx + Math.cos(ang) * r1;
+          var y1 = cy + Math.sin(ang) * r1 * 0.30 - burstA * (16 + (k % 4) * 9);
+          waveCtx.strokeStyle = "rgba(255, 45, 60, " + (burstA * 0.72).toFixed(3) + ")";
+          waveCtx.lineWidth = 2;
+          waveCtx.beginPath();
+          waveCtx.moveTo(x0, y0);
+          waveCtx.lineTo(x1, y1);
+          waveCtx.stroke();
+        }
+      }
+      waveCtx.restore();
+    } else if (window.__RJ_DANCE && window.__RJ_DANCE.active) {
+      var d = window.__RJ_DANCE;
+      var cx2 = vw * 0.5 + (shiftVw / 100) * vw;
+      var cy2 = (mob() ? vh * 0.77 : vh * 0.84) + liftPx * 0.25;
+      var maxR2 = mob() ? vw * 0.36 : Math.min(vw * 0.24, vh * 0.36);
+      var pulse = d.beatFrac || 0;
+      waveCtx.save();
+      waveCtx.globalCompositeOperation = "lighter";
+      var rx2 = 28 + pulse * maxR2;
+      var alpha2 = (1 - pulse) * 0.78;
+      waveCtx.strokeStyle = "rgba(227, 6, 19, " + alpha2.toFixed(3) + ")";
+      waveCtx.lineWidth = Math.max(1.5, (1 - pulse) * 4.5);
+      waveCtx.shadowColor = "#E30613";
+      waveCtx.shadowBlur = 16;
+      waveCtx.beginPath();
+      waveCtx.ellipse(cx2, cy2, rx2, rx2 * 0.25, 0, 0, Math.PI * 2);
+      waveCtx.stroke();
+      waveCtx.restore();
+    }
   }
 
   /* ───── 6. main render loop ───── */
@@ -250,20 +351,38 @@
     raf = null;
     var dt = lastTS ? Math.min(64, (ts || 0) - lastTS) : 16.7;
     lastTS = ts || 0;
-    // exponential smoothing, independent of frame rate
-    shownT += (targetT - shownT) * (1 - Math.pow(0.0009, dt / 1000));
+    // balanced exponential smoothing for buttery scrub response
+    shownT += (targetT - shownT) * (1 - Math.pow(0.0045, dt / 1000));
     if (Math.abs(targetT - shownT) < 0.002) shownT = targetT;
     var t = shownT;
 
-    renderStills(t);
+    var dance = window.__RJ_DANCE;
+    if (dance && dance.active) {
+      for (var j = 0; j < imgs.length; j++) {
+        imgs[j].style.opacity = (j === dance.frameIdx) ? 1 : 0;
+      }
+      filmEl.style.setProperty("--sc", "1.02");
+    } else {
+      renderStills(t);
+    }
 
-    /* hero weight: full at t=0, gone by the intro hold */
-    var hw = 1 - smooth(clamp(t / 7.6, 0, 1));
+    /* hero weight: full at t=0 (back view dead centre), lifts into intro by t=2.4 */
+    var hw = 1 - smooth(clamp(t / 2.4, 0, 1));
     var base = +(filmEl.style.getPropertyValue("--sc") || 1);
+    /* jump lift arc during t=5.25..6.75 */
+    var jumpU = clamp((t - 5.25) / 1.50, 0, 1);
+    var jumpLift = (t >= 5.25 && t <= 6.75) ? -Math.sin(Math.PI * jumpU) * (mob() ? 22 : 34) : 0;
+    var danceLift = (dance && dance.active) ? (dance.dy || 0) : 0;
+    var danceRot = (dance && dance.active) ? (dance.rot || 0) : 0;
+    var danceDx = (dance && dance.active) ? (dance.dx || 0) : 0;
+    var appliedShift = clampShift(shiftAt(t), hwAt(t));
+
     filmEl.style.transform =
-      "translate(" + clampShift(shiftAt(t), hwAt(t)).toFixed(2) + "vw," +
-      (heroY * hw).toFixed(1) + "px) scale(" +
-      (base * (1 + (heroS - 1) * hw)).toFixed(4) + ")";
+      "translate(calc(" + appliedShift.toFixed(2) + "vw + " + danceDx.toFixed(1) + "px)," +
+      (heroY * hw + jumpLift + danceLift).toFixed(1) + "px) scale(" +
+      (base * (1 + (heroS - 1) * hw)).toFixed(4) + ") rotate(" + danceRot.toFixed(2) + "deg)";
+
+    drawRedWaves(t, appliedShift, jumpLift + danceLift);
 
     /* sections */
     var active = null;
@@ -292,17 +411,25 @@
     $("#prog").style.width = (100 * clamp(window.scrollY / total, 0, 1)) + "%";
     $("#hint").style.opacity = window.scrollY > 40 ? 0 : 1;
 
-    if (shownT !== targetT) tick();
+    if (shownT !== targetT || (window.__RJ_DANCE && window.__RJ_DANCE.active)) tick();
   }
   function tick() { if (!raf) raf = requestAnimationFrame(paint); }
+  window.__RJ_TICK = tick;
 
   function onScroll() { targetT = timeAt(window.scrollY); tick(); }
 
   window.addEventListener("scroll", onScroll, { passive: true });
-  window.addEventListener("resize", function () {
+  function onResize() {
     layout(); onScroll();
-    F.forEach(function (f, n) { imgs[n].src = mob() && f.m ? f.m : f.src; });
-  });
+    F.forEach(function (f, n) {
+      var wantSrc = mob() && f.m ? f.m : f.src;
+      if (imgs[n].getAttribute("src") !== wantSrc) imgs[n].src = wantSrc;
+    });
+  }
+  window.addEventListener("resize", onResize, { passive: true });
+  window.addEventListener("orientationchange", function () {
+    setTimeout(onResize, 120);
+  }, { passive: true });
 
   /* ───── 7. loader: preload the stills, probe for a film ─────
      The timeline carries ~22 keyframes, but the visitor only sees the first

@@ -1,25 +1,18 @@
 /* ════════════════════════════════════════════════════════════════════
    enhance.js — "ISSUED FOR FABRICATION"
-   Additive layer. It never edits app.js or config.js; it reads the DOM
-   they build and adds a second skin of behaviour on top:
+   Additive layer. Reads DOM built by app.js & config.js and adds:
 
-     01 · three states of the site   SHOP / DRAWING / 2 A.M.
-     02 · router-bit cursor + engraved toolpath (a measuring tool in
-          DRAWING mode, so visitors leave their own annotations)
-     03 · the character is live      he turns to face your pointer, and
-          you can grab him and spin the 23-position turntable by hand
-     04 · velocity optics            fast scrubbing spins the router up,
-          smears the gate and splits the channels
-     05 · machine sound bed          synthesised, opt-in, no audio files
-     06 · shop-drawing overlay       grid, crop marks, live dimensions,
-          revision cloud, title block, ISSUED FOR FABRICATION stamp
-     07 · vinyl squeegee on the email, mechanical odometer stats,
-          the cantilever bracket that holds the headline up, laminated
-          card tilt, word-mask reveals, film gate + contact-sheet peep
-     08 · coach marks and three easter eggs
+     01 · view modes                SHOP / DRAWING + REPLAY INTRO
+     02 · router-bit cursor + engraved toolpath (measuring tool in
+          DRAWING mode)
+     03 · live character            pointer-follow + horizontal turntable
+     04 · velocity optics           router spin, gate smear, grain
+     05 · machine sound bed         synthesised, opt-in, zero audio files
+     06 · shop-drawing overlay      grid, crop marks, live dimensions
+     07 · vinyl squeegee, odometer stats, cantilever bracket, card tilt,
+          word-mask reveals, film gate & 5-service process decks
 
-   Keyboard: 1 shop · 2 drawing · 3 lit · S sound · 0 reset
-   Type 2AM, CNC or AV and see what happens.
+   Keyboard: 1 shop · 2 drawing · 3/R replay intro · S sound · P reel · 0 reset
    ════════════════════════════════════════════════════════════════════ */
 (function () {
   "use strict";
@@ -50,7 +43,7 @@
   });
 
   var body = document.body, root = document.documentElement;
-  var stage = $("#stage"), film = $("#film"), disc = $("#disc");
+  var stage = $("#stage"), film = $("#film");
   var frImgs = $$("#film .fr");
   var secs = $$(".sec");
   var activeId = "";                    /* which hold is on screen right now */
@@ -61,20 +54,11 @@
     return "";
   }
 
-  /* keep our furniture clear of the disclosure bar */
-  function measureDisc() {
-    if (!disc) return;
-    if (getComputedStyle(disc).position !== "fixed") {
-      root.style.setProperty("--x-disc-h", "0px"); return;
-    }
-    root.style.setProperty("--x-disc-h", (disc.offsetHeight || 34) + "px");
-  }
-
   /* ════════════════════════ 01 · SOUND BED ════════════════════════
      Everything is synthesised: a machine hum, a router whose pitch
      follows scroll velocity, frame detents, a vinyl peel, a plunge.  */
   var SND = (function () {
-    var ctx = null, master = null, humG = null, rot = null, noise = null, buzz = null;
+    var ctx = null, master = null, humG = null, rot = null, noise = null;
     var enabled = false, ready = false;
 
     function build() {
@@ -155,7 +139,7 @@
         if (!ready && !build()) return false;
         enabled = !enabled;
         if (enabled) {
-          if (ctx.state !== "running") ctx.resume();
+          if (ctx.state !== "running" && ctx.resume) ctx.resume().catch(function () {});
           master.gain.cancelScheduledValues(ctx.currentTime);
           master.gain.setTargetAtTime(0.5, ctx.currentTime, 0.25);
         } else {
@@ -174,21 +158,6 @@
         rot.bp.frequency.setTargetAtTime(f * 1.5, t, 0.12);
         rot.g.gain.setTargetAtTime(g, t, 0.1);
       },
-      setLit: function (on) {
-        if (!ready) return;
-        if (!buzz) {
-          buzz = ctx.createGain(); buzz.gain.value = 0.0001;
-          var bo = ctx.createOscillator(); bo.type = "sine"; bo.frequency.value = 100;
-          var bo2 = ctx.createOscillator(); bo2.type = "sine"; bo2.frequency.value = 50;
-          var bg = ctx.createGain(); bg.gain.value = 0.5;
-          var lfo = ctx.createOscillator(); lfo.type = "sine"; lfo.frequency.value = 6.3;
-          var lg = ctx.createGain(); lg.gain.value = 0.006;
-          lfo.connect(lg); lg.connect(buzz.gain);
-          bo.connect(buzz); bo2.connect(bg); bg.connect(buzz); buzz.connect(master);
-          bo.start(); bo2.start(); lfo.start();
-        }
-        buzz.gain.setTargetAtTime(on ? 0.02 : 0.0001, ctx.currentTime, 0.4);
-      },
       detent: function () { burst(0.035, "highpass", 2600, 1800, 0.05, 0.8); },
       peel:   function () { burst(0.55, "bandpass", 420, 3400, 0.09, 1.4); },
       plunge: function () { burst(0.09, "highpass", 3200, 900, 0.07, 0.7); tone(0.14, 240, 62, 0.05, "sine"); },
@@ -201,16 +170,17 @@
   /* ════════════════════════ 02 · TIMELINE (inverse only) ══════════
      app.js owns scroll→time. We only need the reverse, to jump the
      film gate to a chosen frame. Same constants, same block order.  */
-  var PPS = 108, blocks = [];
+  var SEG_PX = [1480, 860, 1080, 1020, 760, 680], blocks = [];
   function buildBlocks() {
     blocks = [];
-    var prev = 0, hp = Math.round(window.innerHeight * 0.95);
-    C.holds.forEach(function (h) {
-      blocks.push({ kind: "seg", t0: prev, t1: h.at, px: Math.max(120, (h.at - prev) * PPS) });
+    var prev = 0, hp = Math.round(window.innerHeight * 0.78);
+    C.holds.forEach(function (h, idx) {
+      var segW = SEG_PX[idx] || Math.max(360, (h.at - prev) * 120);
+      blocks.push({ kind: "seg", t0: prev, t1: h.at, px: segW });
       blocks.push({ kind: "hold", t0: h.at, t1: h.at, px: Math.round(hp * (h.mul || 1)), id: h.id });
       prev = h.at;
     });
-    if (prev < C.filmDuration) blocks.push({ kind: "seg", t0: prev, t1: C.filmDuration, px: (C.filmDuration - prev) * PPS });
+    if (prev < C.filmDuration) blocks.push({ kind: "seg", t0: prev, t1: C.filmDuration, px: Math.max(240, (C.filmDuration - prev) * 140) });
     var acc = 0;
     blocks.forEach(function (b) { b.s0 = acc; acc += b.px; b.s1 = acc; });
   }
@@ -257,8 +227,6 @@
   var tctx = tool.getContext("2d");
 
   var grain = el("div"); grain.id = "x-grain"; body.appendChild(grain);
-  var scan = el("div"); scan.id = "x-scan"; body.appendChild(scan);
-  var light = el("div"); light.id = "x-light"; body.appendChild(light);
 
   /* channel-split filter, applied to the film only while scrubbing hard */
   body.insertAdjacentHTML("beforeend",
@@ -286,7 +254,7 @@
     '<div class="x-modes" role="group" aria-label="View mode" style="display:flex">' +
       '<button type="button" data-mode="shop" aria-pressed="true"><i></i>Shop<kbd>1</kbd></button>' +
       '<button type="button" data-mode="draw" aria-pressed="false"><i></i>Drawing<kbd>2</kbd></button>' +
-      '<button type="button" data-mode="lit" aria-pressed="false"><i></i>2 A.M.<kbd>3</kbd></button>' +
+      '<button type="button" id="x-replay" aria-pressed="false"><i></i>Replay Intro<kbd>3</kbd></button>' +
     '</div><div class="sep"></div>' +
     '<button type="button" id="x-snd" aria-pressed="false"><i></i>Sound<kbd>S</kbd></button>' +
     '<div class="sep"></div>' +
@@ -341,17 +309,16 @@
   /* ════════════════════════ 04 · MODES ══════════════════════════ */
   var MODE = "shop";
   var LUX = {
-    shop: "",   /* wave-6: the turntable caption is retired */
-    draw: "A1 · scale 1:20 · tol ±0.5 mm · ⌀6 bit · rev C",
-    lit:  "350 cd/m² · 6500 K · ΔE 2.1 · IP65 · 02:00 site"
+    shop: "",
+    draw: "A1 · scale 1:20 · tol ±0.5 mm · ⌀6 bit · rev C"
   };
   var dockBtns = $$("#x-dock .x-modes button");
 
   function setMode(m, quiet) {
+    if (m !== "draw") m = "shop";
     if (m === MODE && !quiet) return;
     MODE = m;
     body.classList.toggle("x-draw", m === "draw");
-    body.classList.toggle("x-lit", m === "lit");
     dockBtns.forEach(function (b) {
       var on = b.dataset.mode === m;
       b.classList.toggle("on", on);
@@ -360,14 +327,12 @@
     luxT.textContent = LUX[m];
     lux.classList.toggle("on", !!LUX[m]);
     store.set("x-mode", m);
-    SND.setLit(m === "lit");
     buildAnno();
     if (!quiet) {
       SND.peel();
       say(m === "draw" ? "<b>Drawing</b> · issued for fabrication"
-        : m === "lit" ? "<b>02:00</b> · fascia up, lamps lit"
         : "<b>Shop</b> · back to the portfolio");
-      tipSeen(m === "draw" ? "draw" : m === "lit" ? "lit" : "");
+      tipSeen(m === "draw" ? "draw" : "");
     }
   }
 
@@ -382,7 +347,12 @@
       else say("Sound off");
       return;
     }
-    if (b.id === "x-play") { setCinema(!cin.on); return; }
+    if (b.id === "x-replay") {
+      if (replay.on) stopReplay(false);
+      else startReplayIntro();
+      return;
+    }
+    if (b.id === "x-play") { stopReplay(false); setCinema(!cin.on); return; }
     if (b.dataset.mode) { SND.plunge(); setMode(b.dataset.mode); }
   });
 
@@ -485,9 +455,7 @@
         tctx.beginPath();
         tctx.moveTo(trail[i - 1].x, trail[i - 1].y);
         tctx.lineTo(trail[i].x, trail[i].y);
-        tctx.strokeStyle = MODE === "lit"
-          ? "rgba(255,214,170," + a.toFixed(3) + ")"
-          : "rgba(227,6,19," + (a * 0.85).toFixed(3) + ")";
+        tctx.strokeStyle = "rgba(227,6,19," + (a * 0.85).toFixed(3) + ")";
         tctx.lineWidth = 1.4 * (1 - age) + 0.25;
         tctx.lineCap = "round";
         tctx.stroke();
@@ -625,9 +593,9 @@
     return best;
   }
 
-  /* drag to spin */
+  /* drag to spin (mouse/pen only — touch tablets scroll natively) */
   window.addEventListener("pointerdown", function (e) {
-    if (MODE === "draw" || mob() || reduced) return;
+    if (caseOpen || e.pointerType === "touch" || !FINE.matches || MODE === "draw" || mob() || reduced) return;
     var t = e.target;
     if (t && t.closest && t.closest("a,button,.tk,.x-sq,#x-dock,.paper")) return;
     e.preventDefault();                      /* no image drag, no text drag */
@@ -658,6 +626,11 @@
 
   /* he faces your pointer during the opening beat */
   var lastScroll = performance.now(), followOn = false, hisT = 0;
+  var followFrames = [
+    findFrameIdx("x2_front"),
+    findFrameIdx("x1_turn45"),
+    findFrameIdx("x1b_turn90")
+  ];
   function ts500() {
     var n = performance.now();
     if (n - hisT > 400) { hisT = n; return true; }
@@ -687,13 +660,13 @@
     }
 
     /* pointer follow — only while the opening hold is on screen */
-    var canFollow = FINE.matches && !reduced && !mob() && activeId === "intro" &&
-                    (now - lastScroll > 420) && !ptr.down;
+    var canFollow = FINE.matches && !reduced && !mob() && !caseOpen && !(window.__RJ_DANCE && window.__RJ_DANCE.active) &&
+                    activeId === "intro" && (now - lastScroll > 420) && !ptr.down;
     if (canFollow) {
       if (ts500()) readHisX();
       var nx = clamp((ptr.x - hisX) / (innerWidth * 0.5), -1, 1);
       var off = Math.abs(nx);                                /* 0 on him → 1 edge */
-      var fi = 4 - Math.round(clamp(off, 0, 1) * 2);         /* front → 45 → profile */
+      var fi = followFrames[Math.min(2, Math.round(clamp(off, 0, 1) * 2))];
       var wantFlip = nx < 0;                                 /* you are on his left */
       if (wantFlip !== flipped) { flipped = wantFlip; body.classList.toggle("x-flip", flipped); }
       turn.pos = lerp(turn.pos == null ? fi : turn.pos, fi, 0.09);
@@ -718,9 +691,6 @@
     }
     return C.filmDuration;
   }
-  /* the mirrored half of the turntable */
-  var flipCSS = document.createElement("style");
-  document.head.appendChild(flipCSS);
 
   /* ════════════════════════ 07 · VELOCITY OPTICS ═════════════════ */
   var vel = { y: 0, v: 0, aberr: 0, allowed: !reduced && !mob(), bad: 0,
@@ -760,7 +730,7 @@
     if (vel.bad > 90) { vel.allowed = false; vel.bad = 0; }
 
     /* grain lifts with speed */
-    var go = Math.round(((MODE === "lit" ? 0.09 : MODE === "draw" ? 0.045 : 0.05) +
+    var go = Math.round(((MODE === "draw" ? 0.045 : 0.05) +
                          clamp(a * 0.012, 0, 0.05)) * 100);
     if (go !== vel.grain) { vel.grain = go; grain.style.opacity = (go / 100).toFixed(2); }
   }
@@ -1215,11 +1185,11 @@ if (!small && actId === "contact") {
   function tipSeen(k) { if (k) { seen[k] = 1; store.set("x-seen", Object.keys(seen).join(",")); } }
   var TIPS = [
     { id: "drag", test: function (a) { return a === "intro"; },
-      html: "Grab him and <em>drag sideways</em> — 23 positions" },
+      html: "Grab him and <em>drag sideways</em> — " + NF + " keyframes" },
     { id: "draw", test: function (a) { return a === "about" || a === "work"; },
       html: "Press <em>2</em> — the page becomes its own shop drawing" },
-    { id: "lit", test: function (a) { return a === "work" || a === "skills"; },
-      html: "Press <em>3</em> — it is 2 a.m. and the fascia is up" },
+    { id: "replay", test: function (a) { return a === "work" || a === "skills"; },
+      html: "Press <em>3</em> or tap <em>Replay Intro</em> — spin, jump &amp; dance" },
     { id: "squeegee", test: function (a) { return a === "contact"; },
       html: "The email is masked. <em>Drag it</em> to apply the vinyl" }
   ];
@@ -1261,8 +1231,8 @@ if (!small && actId === "contact") {
     }
     if (k === "1") { setMode("shop"); return; }
     if (k === "2") { setMode("draw"); return; }
-    if (k === "3") { setMode("lit"); return; }
-    if (k === "0") { setMode("shop"); window.scrollTo({ top: 0, behavior: "smooth" }); return; }
+    if (k === "3" || k === "r" || k === "R") { if (replay.on) stopReplay(false); else startReplayIntro(); return; }
+    if (k === "0") { stopReplay(false); setMode("shop"); window.scrollTo({ top: 0, behavior: "smooth" }); return; }
     if (k === "s" || k === "S") { $("#x-snd").click(); return; }
     if (k === "p" || k === "P") { setCinema(!cin.on); return; }
     if (cin.on && k.length === 1) setCinema(false);
@@ -1270,10 +1240,8 @@ if (!small && actId === "contact") {
       marks.length = 0; egg.classList.remove("on"); coach.classList.remove("on"); return;
     }
     if (/^[a-zA-Z0-9]$/.test(k)) {
-      buf = (buf + k.toUpperCase()).slice(-8);
-      if (buf.indexOf("2AM") >= 0) { buf = ""; setMode("lit");
-        say("<b>Site log</b> · 02:00 · C21 Mall · 14 fascias · lamps lit"); SND.thud(); }
-      else if (buf.indexOf("CNC") >= 0) { buf = ""; setMode("draw");
+      buf = (buf + k.toUpperCase()).slice(-9);
+      if (buf.indexOf("CNC") >= 0) { buf = ""; setMode("draw");
         say("<b>Toolpath loaded</b> · ⌀6 bit · 3 mm radial offset · one setup"); SND.plunge(); }
       else if (buf.indexOf("ARTVISION") >= 0 || buf.slice(-2) === "AV") { buf = ""; eggFire("av"); }
     }
@@ -1353,6 +1321,98 @@ if (!small && actId === "contact") {
     if (logT && logT.textContent !== lg) logT.textContent = lg;
   }
 
+  /* ── Replay Intro + Dance Celebration (triggered by Replay Intro button) ── */
+  var replay = { on: false, raf: null, t0: 0, lastBeat: -1 };
+  function findFrameIdx(part) {
+    for (var i = 0; i < F.length; i++) {
+      if (F[i].src.indexOf(part) >= 0) return i;
+    }
+    return 0;
+  }
+  var DANCE_MOVES = [
+    findFrameIdx("x2a_step1"),
+    findFrameIdx("x7a_reach"),
+    findFrameIdx("x_jump_air"),
+    findFrameIdx("x8_pull"),
+    findFrameIdx("x2b_step2"),
+    findFrameIdx("x_run_right"),
+    findFrameIdx("x7a_reach"),
+    findFrameIdx("x_jump_air"),
+    findFrameIdx("x8_pull"),
+    findFrameIdx("x9_wave")
+  ];
+
+  function stopReplay(finished) {
+    if (!replay.on) return;
+    replay.on = false;
+    if (replay.raf) { cancelAnimationFrame(replay.raf); replay.raf = null; }
+    window.__RJ_DANCE = null;
+    if (window.__RJ_TICK) window.__RJ_TICK();
+    var b = $("#x-replay");
+    if (b) { b.classList.remove("on"); b.setAttribute("aria-pressed", "false"); }
+    if (finished) {
+      say("<b>Intro + Dance complete</b> · scroll down to explore", 2400);
+    }
+  }
+
+  function startReplayIntro() {
+    setCinema(false);
+    if (MODE === "draw") setMode("shop", true);
+    replay.on = true;
+    replay.t0 = performance.now();
+    replay.lastBeat = -1;
+    var b = $("#x-replay");
+    if (b) { b.classList.add("on"); b.setAttribute("aria-pressed", "true"); }
+    SND.chime();
+    say("<b>Replaying Intro</b> · Run · 360° Spin · Jump · Dance!", 2800);
+
+    var introEndY = scrollAtTime(7.6);
+    var stage1Ms = 4600;
+    var stage2Ms = 3000;
+
+    function step(now) {
+      if (!replay.on) return;
+      var elapsed = now - replay.t0;
+      if (elapsed < stage1Ms) {
+        var u = elapsed / stage1Ms;
+        // gentle easing across Run -> Spin -> Jump+RedWaves -> Wave
+        var ease = u < 0.5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2;
+        window.scrollTo(0, introEndY * ease);
+        window.__RJ_DANCE = null;
+        var beat1 = Math.floor(elapsed / 380);
+        if (beat1 !== replay.lastBeat) { replay.lastBeat = beat1; SND.tick(); }
+        replay.raf = requestAnimationFrame(step);
+      } else if (elapsed < stage1Ms + stage2Ms) {
+        window.scrollTo(0, introEndY);
+        var dEl = elapsed - stage1Ms;
+        var stepDur = 300;
+        var moveIdx = Math.min(DANCE_MOVES.length - 1, Math.floor(dEl / stepDur));
+        var beatFrac = (dEl % stepDur) / stepDur;
+        var bounce = -Math.abs(Math.sin(beatFrac * Math.PI)) * (mob() ? 18 : 26);
+        var sway = Math.sin((dEl / stepDur) * Math.PI) * 14;
+        var tilt = Math.sin((dEl / stepDur) * Math.PI) * 5.2;
+        window.__RJ_DANCE = {
+          active: true,
+          frameIdx: DANCE_MOVES[moveIdx],
+          dy: bounce,
+          dx: sway,
+          rot: tilt,
+          beatFrac: beatFrac
+        };
+        if (window.__RJ_TICK) window.__RJ_TICK();
+        if (moveIdx !== replay.lastBeat) {
+          replay.lastBeat = moveIdx;
+          if (moveIdx % 2 === 0) SND.thud(); else SND.detent();
+        }
+        replay.raf = requestAnimationFrame(step);
+      } else {
+        window.scrollTo(0, introEndY);
+        stopReplay(true);
+      }
+    }
+    replay.raf = requestAnimationFrame(step);
+  }
+
   /* ── the reel: press P and the film plays itself, hands off ── */
   var cin = { on: false, y: 0, dwell: 0, hudT: 0 };
   function fmtT(t) {
@@ -1387,11 +1447,11 @@ if (!small && actId === "contact") {
       return;
     }
     if (b.kind === "seg") {
-      cin.y = y + 108 * (dt / 1000);
+      cin.y = y + 185 * (dt / 1000);
       if (cin.y > b.s1) cin.y = b.s1;
     } else {
       cin.dwell += dt;
-      if (cin.dwell > 1500 + b.px * 2.2) { cin.dwell = 0; cin.y = b.s1; }
+      if (cin.dwell > 1400 + b.px * 1.9) { cin.dwell = 0; cin.y = b.s1; }
     }
     window.scrollTo(0, cin.y);
     if (performance.now() - cin.hudT > 240) {
@@ -1400,23 +1460,12 @@ if (!small && actId === "contact") {
         fmtT(C.filmDuration) + " \u00b7 reel \u00b7 P stops";
     }
   }
-  ["wheel", "touchmove", "touchstart"].forEach(function (ev) {
-    window.addEventListener(ev, function () { if (cin.on) setCinema(false); }, { passive: true });
+  ["wheel", "touchmove"].forEach(function (ev) {
+    window.addEventListener(ev, function () {
+      if (cin.on) setCinema(false);
+      if (replay.on) stopReplay(false);
+    }, { passive: true });
   });
-
-  /* ── neon ignite: in 2 A.M. the big letters strike one by one ── */
-  (function letterize() {
-    $$(".ctitle .x-w > i, .big .x-w > i").forEach(function (node) {
-      var txt = node.textContent, out = "", i;
-      for (i = 0; i < txt.length; i++) {
-        out += txt[i] === " " ? " " :
-          '<b class="x-ch" style="--d:' + (i * 52 + Math.floor(Math.random() * 130)) + 'ms">' +
-          txt[i] + "</b>";
-      }
-      node.innerHTML = out;
-    });
-  })();
-
 
   /* ════════════════ 11c · WAVE 3 — THE CASE DECKS ═══════════════════
      The point of a portfolio is the process. Click any service panel
@@ -1674,17 +1723,26 @@ if (!small && actId === "contact") {
   caseEl.setAttribute("role", "dialog"); caseEl.setAttribute("aria-modal", "true");
   caseEl.innerHTML =
     '<div class="xc-top"><div class="xc-id"><b id="xc-k"></b><span id="xc-t"></span></div>' +
+    '<div class="xc-tabs" id="xc-tabs" role="tablist" aria-label="Switch service"></div>' +
     '<div class="xc-prog" id="xc-prog"></div>' +
     '<button type="button" class="xc-x" id="xc-x">Close ✕<kbd>esc</kbd></button></div>' +
     '<div class="xc-body"><nav class="xc-rail" id="xc-rail" aria-label="Process stages"></nav>' +
-    '<figure class="xc-stage"><div class="xc-visual" id="xc-vis"></div>' +
-    '<figcaption class="xc-cap"><div class="xc-cn" id="xc-cn"></div>' +
-    '<p id="xc-cap"></p><div class="xc-meta" id="xc-meta"></div></figcaption></figure></div>' +
-    '<div class="xc-foot">← → or scroll to flip the board · every board carries its source label — photo, file, drawing or campaign visual</div>';
+    '<figure class="xc-stage">' +
+      '<button type="button" class="xc-arrow prev" id="xc-prev" aria-label="Previous board">‹</button>' +
+      '<button type="button" class="xc-arrow next" id="xc-next" aria-label="Next board">›</button>' +
+      '<div class="xc-visual" id="xc-vis" title="Click right/left to surf boards"></div>' +
+      '<figcaption class="xc-cap"><div class="xc-cap-row"><div class="xc-cn" id="xc-cn"></div>' +
+      '<button type="button" class="xc-next-svc" id="xc-next-svc"></button></div>' +
+      '<div class="xc-dots" id="xc-dots"></div>' +
+      '<p id="xc-cap"></p><div class="xc-meta" id="xc-meta"></div></figcaption></figure></div>' +
+    '<div class="xc-foot">Click visual, use ‹ › arrows, swipe or scroll to surf boards · switch services A–E anytime at the top</div>';
   body.appendChild(caseEl);
 
   var caseOpen = false, caseI = 0, caseK = 0, caseBusy = 0;
-  var xcVis = $("#xc-vis", caseEl), xcRail = $("#xc-rail", caseEl);
+  var xcVis = $("#xc-vis", caseEl), xcRail = $("#xc-rail", caseEl), xcTabs = $("#xc-tabs", caseEl);
+  xcTabs.innerHTML = CASES.map(function (c, idx) {
+    return '<button type="button" class="xc-tab" data-ci="' + idx + '">' + c.key + ' · ' + c.title + '</button>';
+  }).join("");
 
   function sheetHTML(st) {
     return '<div class="xc-sh"><div class="xc-sheet"><div class="xc-sheet-h"><span>' +
@@ -1707,9 +1765,9 @@ if (!small && actId === "contact") {
     return sheetHTML(st);
   }
   function renderStage(dir) {
-    var c = CASES[caseI], st = c.stages[caseK];
+    var c = CASES[caseI], st = c.stages[caseK], totalS = c.stages.length;
     $("#xc-prog", caseEl).textContent = "STAGE " + ("0" + (caseK + 1)).slice(-2) +
-      " / " + ("0" + c.stages.length).slice(-2);
+      " / " + ("0" + totalS).slice(-2);
     $("#xc-cn", caseEl).textContent = ("0" + (caseK + 1)).slice(-2) + " · " + st.n.toUpperCase();
     $("#xc-cap", caseEl).textContent = st.cap;
     $("#xc-meta", caseEl).innerHTML = (st.meta || []).map(function (m) {
@@ -1717,7 +1775,21 @@ if (!small && actId === "contact") {
     $$("#xc-rail button", caseEl).forEach(function (b, i) {
       b.classList.toggle("on", i === caseK);
       b.classList.toggle("done", i < caseK);
+      if (i === caseK && b.scrollIntoView) b.scrollIntoView({ block: "nearest", inline: "nearest" });
     });
+    $$("#xc-tabs .xc-tab", caseEl).forEach(function (t, i) {
+      t.classList.toggle("on", i === caseI);
+    });
+    var dotsEl = $("#xc-dots", caseEl);
+    dotsEl.innerHTML = c.stages.map(function (_, i) {
+      return '<button type="button" class="xc-dot ' + (i === caseK ? "on" : i < caseK ? "done" : "") + '" data-k="' + i + '" aria-label="Stage ' + (i + 1) + '"></button>';
+    }).join("");
+    var nextSvc = CASES[(caseI + 1) % CASES.length];
+    var nsBtn = $("#xc-next-svc", caseEl);
+    nsBtn.textContent = "Next Service: " + nextSvc.key + " · " + nextSvc.title + " →";
+    $("#xc-prev", caseEl).disabled = (caseK === 0 && caseI === 0);
+    $("#xc-next", caseEl).disabled = false;
+
     xcVis.className = "xc-visual " + (dir > 0 ? "go-r" : dir < 0 ? "go-l" : "go-r");
     xcVis.innerHTML = visualHTML(st);
     $$(".p, .d line", xcVis).forEach(function (n) { n.setAttribute("pathLength", "1"); });
@@ -1731,8 +1803,24 @@ if (!small && actId === "contact") {
   }
   function goStage(k, dir) {
     var n = CASES[caseI].stages.length;
-    k = clamp(k, 0, n - 1);
-    if (k === caseK || performance.now() - caseBusy < 180) return;
+    if (performance.now() - caseBusy < 160) return;
+    if (k >= n) {
+      // Seamless surf into next service when going past last board!
+      caseBusy = performance.now();
+      openCase((caseI + 1) % CASES.length);
+      return;
+    }
+    if (k < 0) {
+      if (caseI > 0) {
+        caseBusy = performance.now();
+        var prevIdx = caseI - 1;
+        openCase(prevIdx);
+        caseK = CASES[prevIdx].stages.length - 1;
+        renderStage(-1);
+      }
+      return;
+    }
+    if (k === caseK) return;
     caseBusy = performance.now(); caseK = k;
     SND.tick();
     renderStage(dir == null ? 1 : dir);
@@ -1762,29 +1850,48 @@ if (!small && actId === "contact") {
     body.classList.remove("x-cased");
     SND.tick();
   }
+  xcTabs.addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    var ci = +b.dataset.ci;
+    if (ci !== caseI) openCase(ci);
+  });
   xcRail.addEventListener("click", function (e) {
     var b = e.target.closest("button"); if (!b) return;
     goStage(+b.dataset.k, +b.dataset.k > caseK ? 1 : -1);
   });
+  $("#xc-dots", caseEl).addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    goStage(+b.dataset.k, +b.dataset.k > caseK ? 1 : -1);
+  });
+  $("#xc-prev", caseEl).addEventListener("click", function () { goStage(caseK - 1, -1); });
+  $("#xc-next", caseEl).addEventListener("click", function () { goStage(caseK + 1, 1); });
+  $("#xc-next-svc", caseEl).addEventListener("click", function () { openCase((caseI + 1) % CASES.length); });
   $("#xc-x", caseEl).addEventListener("click", closeCase);
   caseEl.addEventListener("wheel", function (e) {
     e.preventDefault();
-    if (performance.now() - caseBusy < 420) return;
+    if (performance.now() - caseBusy < 190) return;
     goStage(caseK + (e.deltaY > 0 ? 1 : -1), e.deltaY > 0 ? 1 : -1);
   }, { passive: false });
-  var swX = null;
-  caseEl.addEventListener("pointerdown", function (e) { swX = e.clientX; });
+  var swX = null, swY = null;
+  caseEl.addEventListener("pointerdown", function (e) { swX = e.clientX; swY = e.clientY; });
   caseEl.addEventListener("pointerup", function (e) {
     if (swX == null) return;
-    var dx = e.clientX - swX; swX = null;
-    if (Math.abs(dx) > 46) goStage(caseK + (dx < 0 ? 1 : -1), dx < 0 ? 1 : -1);
+    var dx = e.clientX - swX, dy = e.clientY - (swY || e.clientY);
+    swX = null; swY = null;
+    if (Math.abs(dx) > 44 && Math.abs(dx) > Math.abs(dy) * 1.35) {
+      goStage(caseK + (dx < 0 ? 1 : -1), dx < 0 ? 1 : -1);
+    } else if (Math.abs(dx) < 12 && Math.abs(dy) < 12 && e.target.closest("#xc-vis") && !e.target.closest("button")) {
+      var rect = xcVis.getBoundingClientRect();
+      var goNext = (e.clientX - rect.left) >= rect.width * 0.35;
+      goStage(caseK + (goNext ? 1 : -1), goNext ? 1 : -1);
+    }
   });
 
   /* wire the cards: the image is the door into the process */
   cards.forEach(function (c, i) {
     var imw = $(".imw", c);
     if (imw) {
-      imw.insertAdjacentHTML("beforeend", '<span class="xc-open">Process ↗</span>');
+      imw.insertAdjacentHTML("beforeend", '<span class="xc-open">Explore ↗</span>');
       imw.setAttribute("role", "button"); imw.setAttribute("tabindex", "0");
       imw.setAttribute("aria-label", "Open the " + CASES[i].title + " work process");
       imw.addEventListener("keydown", function (e) {
@@ -1856,7 +1963,6 @@ if (!small && actId === "contact") {
     buildBlocks();
     sizeTool();
     buildGrid();
-    measureDisc();
     buildAnno(true);
   }
   var rzT = null;
@@ -1904,12 +2010,6 @@ if (!small && actId === "contact") {
       row.parentNode.insertBefore(st, row.nextSibling);
     }
   })();
-  /* wave-7: the AI disclosure leaves the fixed bar and becomes
-     the contact section's footer — read it or hear it on the reel */
-  (function () {
-    var d = $("#disc"), home = $("#s-contact .inner");
-    if (d && home) { home.appendChild(d); d.classList.add("x-footer"); }
-  })();
   relayout();
   markStrip(0);
   luxT.textContent = LUX.shop;
@@ -1917,7 +2017,7 @@ if (!small && actId === "contact") {
 
   /* restored preferences */
   var m0 = store.get("x-mode", "shop");
-  if (m0 === "draw" || m0 === "lit") setMode(m0, true);
+  if (m0 === "draw") setMode("draw", true);
   lux.classList.toggle("on", !!luxT.textContent);
   if (store.get("x-sound", "0") === "1") {
     /* browsers need a gesture; arm it on the first one */
@@ -1925,9 +2025,11 @@ if (!small && actId === "contact") {
       if (!SND.isOn()) SND.toggle();
       var b = $("#x-snd"); if (b) { b.classList.add("on"); b.setAttribute("aria-pressed", "true"); }
       window.removeEventListener("pointerdown", arm);
+      window.removeEventListener("touchstart", arm);
       window.removeEventListener("keydown", arm);
     };
     window.addEventListener("pointerdown", arm);
+    window.addEventListener("touchstart", arm, { passive: true });
     window.addEventListener("keydown", arm);
   }
 
@@ -1937,7 +2039,6 @@ if (!small && actId === "contact") {
     if (!ld || ld.classList.contains("done") || n > 90) {
       requestAnimationFrame(loop);
       setTimeout(function () {
-        measureDisc();
         if (luxT.textContent) lux.classList.add("on");
         showTip("");
       }, 900);
@@ -1995,7 +2096,7 @@ if (!small && actId === "contact") {
   var use = function (id) { return '<svg class="pi" aria-hidden="true"><use href="#pi-' + id + '"/></svg>'; };
   var SS = function (sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); };
   var q1 = function (sel) { return document.querySelector(sel); };
-  var MAP = {"cards": {"Advertising": "advertising", "Branding": "branding", "Creative": "creative", "Designing": "designing", "Execution": "execution"}, "eyebrows": {"s-about": "brief", "s-work": "concept", "s-skills": "grid", "s-resume": "card", "s-contact": "dispatch"}, "dock": {"shop": "kiosk", "draw": "drawing", "lit": "clock", "snd": "neon", "play": "daynight"}, "chips": {"CorelDRAW": "cutfile", "Illustrator": "concept", "Photoshop": "colour", "Affinity Designer": "grid", "ACP Fabrication": "acp", "CNC Routing": "cnc", "Signage Engineering": "steel", "Brand Identity": "branding", "Retail Rollout": "flex", "Site Recce": "recce", "Quality Control": "qc", "Vinyl & Large Format": "vinyl"}};
+  var MAP = {"cards": {"Advertising": "advertising", "Branding": "branding", "Creative": "creative", "Designing": "designing", "Execution": "execution"}, "eyebrows": {"s-about": "brief", "s-work": "concept", "s-skills": "grid", "s-resume": "card", "s-contact": "dispatch"}, "dock": {"shop": "kiosk", "draw": "drawing", "replay": "neon", "snd": "neon", "play": "daynight"}, "chips": {"CorelDRAW": "cutfile", "Illustrator": "concept", "Photoshop": "colour", "Affinity": "grid", "Canva": "colour", "Microsoft Office": "brief", "GitHub": "cutfile", "Wix": "grid", "Printing Machine": "vinyl", "Product and Packaging": "card", "ACP Fabrication": "acp", "CNC Routing": "cnc", "Signage Engineering": "steel", "Brand Identity": "branding", "Retail Rollout": "flex", "Site Recce": "recce", "Quality Control": "qc", "Vinyl & Large Format": "vinyl"}};
   SS("#s-work .card .t").forEach(function (t) {
     var k = MAP.cards[t.textContent.trim()];
     if (k) t.insertAdjacentHTML("afterbegin", use(k));
@@ -2005,7 +2106,7 @@ if (!small && actId === "contact") {
     if (e) e.insertAdjacentHTML("afterbegin", use(MAP.eyebrows[sec]));
   });
   SS("#x-dock button").forEach(function (b) {
-    var k = b.id === "x-snd" ? MAP.dock.snd : b.id === "x-play" ? MAP.dock.play : MAP.dock[b.getAttribute("data-mode")];
+    var k = b.id === "x-snd" ? MAP.dock.snd : b.id === "x-play" ? MAP.dock.play : b.id === "x-replay" ? MAP.dock.replay : MAP.dock[b.getAttribute("data-mode")];
     var dot = b.querySelector("i");
     if (k && dot) dot.insertAdjacentHTML("afterend", use(k));
   });
@@ -2063,7 +2164,7 @@ if (!small && actId === "contact") {
    The drawn boards (shop drawings, cut lists) stay — they are drawings,
    not photos, and slot in right after each recce.                    */
 (function () {
-  var CAMP = {"A": [{"n": "Site Recce & Measurement", "tag": "CAMPAIGN VISUAL", "cap": "Site Recce & Measurement", "img": "media/camp/a01.webp"}, {"n": "Print Artwork Processing", "tag": "PRODUCTION FILE", "cap": "Print Artwork Processing", "img": "media/camp/a02.webp"}, {"n": "CNC Cutting File", "tag": "PRODUCTION FILE", "cap": "CNC Cutting File", "img": "media/camp/a03.webp"}, {"n": "Approval — Site Before", "tag": "CAMPAIGN VISUAL", "cap": "Approval — Site Before", "img": "media/camp/a04.webp"}, {"n": "Approval — Adaptation After (Day)", "tag": "PROPOSED · RENDER", "cap": "Approval — Adaptation After (Day)", "img": "media/camp/a05.webp"}, {"n": "Approval — Adaptation After (Night)", "tag": "PROPOSED · RENDER", "cap": "Approval — Adaptation After (Night)", "img": "media/camp/a06.webp"}, {"n": "Workshop Production & Fabrication", "tag": "CAMPAIGN VISUAL", "cap": "Workshop Production & Fabrication", "img": "media/camp/a07.webp"}, {"n": "Overnight Site Installation", "tag": "CAMPAIGN VISUAL", "cap": "Overnight Site Installation", "img": "media/camp/a08.webp"}, {"n": "Final Execution — Portal, Morning", "tag": "CAMPAIGN VISUAL", "cap": "Final Execution — Portal, Morning", "img": "media/camp/a09.webp"}, {"n": "Final Execution — Stand & Stage", "tag": "CAMPAIGN VISUAL", "cap": "Final Execution — Stand & Stage", "img": "media/camp/a10.webp"}], "B": [{"n": "From artwork file to finished in-shop branding", "tag": "CAMPAIGN · ART", "cap": "From artwork file to finished in-shop branding — Retail graphics, file se production tak", "img": "media/camp/b11.webp"}, {"n": "From artwork file to finished in-shop branding", "tag": "CAMPAIGN · ART", "cap": "From artwork file to finished in-shop branding — Sheet acrylic se 3D / embossed effect letters kaise bante hain", "img": "media/camp/b12.webp"}, {"n": "Site Recce — Shopfront Measurement", "tag": "CAMPAIGN VISUAL", "cap": "Site Recce — Shopfront Measurement", "img": "media/camp/b13.webp"}, {"n": "Master Ratio Print Processing", "tag": "PRODUCTION FILE", "cap": "Master Ratio Print Processing", "img": "media/camp/b14.webp"}, {"n": "CNC ACP Fascia Cutting File", "tag": "PRODUCTION FILE", "cap": "CNC ACP Fascia Cutting File", "img": "media/camp/b15.webp"}, {"n": "Approval — Shopfront Before", "tag": "CAMPAIGN VISUAL", "cap": "Approval — Shopfront Before", "img": "media/camp/b16.webp"}, {"n": "Approval — Adaptation After (Day)", "tag": "PROPOSED · RENDER", "cap": "Approval — Adaptation After (Day)", "img": "media/camp/b17.webp"}, {"n": "Approval — Adaptation After (Night)", "tag": "PROPOSED · RENDER", "cap": "Approval — Adaptation After (Night)", "img": "media/camp/b18.webp"}, {"n": "Production — Batch Fabrication", "tag": "CAMPAIGN VISUAL", "cap": "Production — Batch Fabrication", "img": "media/camp/b19.webp"}, {"n": "Site — Shopfront Installation", "tag": "CAMPAIGN VISUAL", "cap": "Site — Shopfront Installation", "img": "media/camp/b20.webp"}, {"n": "Final Execution — Flagship Store Live", "tag": "CAMPAIGN VISUAL", "cap": "Final Execution — Flagship Store Live", "img": "media/camp/b21.webp"}, {"n": "Final Execution — Multi-Format Rollout", "tag": "CAMPAIGN VISUAL", "cap": "Final Execution — Multi-Format Rollout", "img": "media/camp/b22.webp"}], "C": [{"n": "Site Recce — Studio Measurement", "tag": "CAMPAIGN VISUAL", "cap": "Site Recce — Studio Measurement", "img": "media/camp/c23.webp"}, {"n": "Construction Grid Print Processing", "tag": "PRODUCTION FILE", "cap": "Construction Grid Print Processing", "img": "media/camp/c24.webp"}, {"n": "Die-Cut / Laser Cutting File", "tag": "PRODUCTION FILE", "cap": "Die-Cut / Laser Cutting File", "img": "media/camp/c25.webp"}, {"n": "Approval — Studio Before", "tag": "CAMPAIGN VISUAL", "cap": "Approval — Studio Before", "img": "media/camp/c26.webp"}, {"n": "Approval — Adaptation After (Day)", "tag": "PROPOSED · RENDER", "cap": "Approval — Adaptation After (Day)", "img": "media/camp/c27.webp"}, {"n": "Approval — Adaptation After (Night)", "tag": "PROPOSED · RENDER", "cap": "Approval — Adaptation After (Night)", "img": "media/camp/c28.webp"}, {"n": "Production — Print & Laser Packaging", "tag": "CAMPAIGN VISUAL", "cap": "Production — Print & Laser Packaging", "img": "media/camp/c29.webp"}, {"n": "Site — Studio Installation", "tag": "CAMPAIGN VISUAL", "cap": "Site — Studio Installation", "img": "media/camp/c30.webp"}, {"n": "Final Execution — Studio Day-One Live", "tag": "CAMPAIGN VISUAL", "cap": "Final Execution — Studio Day-One Live", "img": "media/camp/c31.webp"}, {"n": "Final Execution — Day-One Identity System", "tag": "CAMPAIGN VISUAL", "cap": "Final Execution — Day-One Identity System", "img": "media/camp/c32.webp"}], "D": [{"n": "Site Recce — Elevation Measurement", "tag": "CAMPAIGN VISUAL", "cap": "Site Recce — Elevation Measurement", "img": "media/camp/d33.webp"}, {"n": "Vector Geometry Print Proofing", "tag": "PRODUCTION FILE", "cap": "Vector Geometry Print Proofing", "img": "media/camp/d34.webp"}, {"n": "CNC Router Toolpath File", "tag": "PRODUCTION FILE", "cap": "CNC Router Toolpath File", "img": "media/camp/d35.webp"}, {"n": "Approval — Wall Before", "tag": "CAMPAIGN VISUAL", "cap": "Approval — Wall Before", "img": "media/camp/d36.webp"}, {"n": "Approval — Adaptation After (Day)", "tag": "PROPOSED · RENDER", "cap": "Approval — Adaptation After (Day)", "img": "media/camp/d37.webp"}, {"n": "Approval — Adaptation After (Night)", "tag": "PROPOSED · RENDER", "cap": "Approval — Adaptation After (Night)", "img": "media/camp/d38.webp"}, {"n": "Production — CNC Router Machining", "tag": "CAMPAIGN VISUAL", "cap": "Production — CNC Router Machining", "img": "media/camp/d39.webp"}, {"n": "Site — CNC Panel Installation", "tag": "CAMPAIGN VISUAL", "cap": "Site — CNC Panel Installation", "img": "media/camp/d40.webp"}, {"n": "Final Execution — Atrium CNC Live", "tag": "CAMPAIGN VISUAL", "cap": "Final Execution — Atrium CNC Live", "img": "media/camp/d41.webp"}, {"n": "Final Execution — Macro Tolerance Detail", "tag": "CAMPAIGN VISUAL", "cap": "Final Execution — Macro Tolerance Detail", "img": "media/camp/d42.webp"}], "E": [{"n": "Site Recce & Measurement", "tag": "CAMPAIGN VISUAL", "cap": "Site Recce & Measurement", "img": "media/camp/e43.webp"}, {"n": "Digital Print & Sync Processing", "tag": "PRODUCTION FILE", "cap": "Digital Print & Sync Processing", "img": "media/camp/e44.webp"}, {"n": "CNC Bezel Fabrication File", "tag": "CAMPAIGN · ART", "cap": "CNC Bezel Fabrication File", "img": "media/camp/e45.webp"}, {"n": "Approval — Site Before", "tag": "CAMPAIGN VISUAL", "cap": "Approval — Site Before", "img": "media/camp/e46.webp"}, {"n": "Approval — Adaptation After (Day)", "tag": "PROPOSED · RENDER", "cap": "Approval — Adaptation After (Day)", "img": "media/camp/e47.webp"}, {"n": "Approval — Adaptation After (Night)", "tag": "PROPOSED · RENDER", "cap": "Approval — Adaptation After (Night)", "img": "media/camp/e48.webp"}, {"n": "Production — Backlit & Screen Integration", "tag": "CAMPAIGN VISUAL", "cap": "Production — Backlit & Screen Integration", "img": "media/camp/e49.webp"}, {"n": "Site — Installation & Commissioning", "tag": "CAMPAIGN VISUAL", "cap": "Site — Installation & Commissioning", "img": "media/camp/e50.webp"}, {"n": "Final Execution — Continuous Surface Live", "tag": "CAMPAIGN VISUAL", "cap": "Final Execution — Continuous Surface Live", "img": "media/camp/e51.webp"}, {"n": "ArtViSiON — PRODUCTion · DESiGN", "tag": "CAMPAIGN · ART", "cap": "ArtViSiON — PRODUCTion · DESiGN", "img": "media/camp/e52.webp"}]};
+  var CAMP = {"A": [{"n": "Site Recce & Measurement", "tag": "CAMPAIGN VISUAL", "cap": "Site Recce & Measurement", "img": "media/camp/a01.webp"}, {"n": "Print Artwork Processing", "tag": "PRODUCTION FILE", "cap": "Print Artwork Processing", "img": "media/camp/a02.webp"}, {"n": "CNC Cutting File", "tag": "PRODUCTION FILE", "cap": "CNC Cutting File", "img": "media/camp/a03.webp"}, {"n": "Approval — Site Before", "tag": "CAMPAIGN VISUAL", "cap": "Approval — Site Before", "img": "media/camp/a04.webp"}, {"n": "Approval — Adaptation After (Day)", "tag": "PROPOSED · RENDER", "cap": "Approval — Adaptation After (Day)", "img": "media/camp/a05.webp"}, {"n": "Approval — Adaptation After (Night)", "tag": "PROPOSED · RENDER", "cap": "Approval — Adaptation After (Night)", "img": "media/camp/a06.webp"}, {"n": "Workshop Production & Fabrication", "tag": "CAMPAIGN VISUAL", "cap": "Workshop Production & Fabrication", "img": "media/camp/a07.webp"}, {"n": "Overnight Site Installation", "tag": "CAMPAIGN VISUAL", "cap": "Overnight Site Installation", "img": "media/camp/a08.webp"}, {"n": "Final Execution — Portal, Morning", "tag": "CAMPAIGN VISUAL", "cap": "Final Execution — Portal, Morning", "img": "media/camp/a09.webp"}, {"n": "Final Execution — Stand & Stage", "tag": "CAMPAIGN VISUAL", "cap": "Final Execution — Stand & Stage", "img": "media/camp/a10.webp"}], "B": [{"n": "From artwork file to finished in-shop branding", "tag": "CAMPAIGN · ART", "cap": "From artwork file to finished in-shop branding — Retail graphics, file se production tak", "img": "media/camp/b11.webp"}, {"n": "From artwork file to finished in-shop branding", "tag": "CAMPAIGN · ART", "cap": "From artwork file to finished in-shop branding — Sheet acrylic se 3D / embossed effect letters kaise bante hain", "img": "media/camp/b12.webp"}, {"n": "Site Recce — Shopfront Measurement", "tag": "CAMPAIGN VISUAL", "cap": "Site Recce — Shopfront Measurement", "img": "media/camp/b13.webp"}, {"n": "Master Ratio Print Processing", "tag": "PRODUCTION FILE", "cap": "Master Ratio Print Processing", "img": "media/camp/b14.webp"}, {"n": "CNC ACP Fascia Cutting File", "tag": "PRODUCTION FILE", "cap": "CNC ACP Fascia Cutting File", "img": "media/camp/b15.webp"}, {"n": "Approval — Shopfront Before", "tag": "CAMPAIGN VISUAL", "cap": "Approval — Shopfront Before", "img": "media/camp/b16.webp"}, {"n": "Approval — Adaptation After (Day)", "tag": "PROPOSED · RENDER", "cap": "Approval — Adaptation After (Day)", "img": "media/camp/b17.webp"}, {"n": "Approval — Adaptation After (Night)", "tag": "PROPOSED · RENDER", "cap": "Approval — Adaptation After (Night)", "img": "media/camp/b18.webp"}, {"n": "Production — Batch Fabrication", "tag": "CAMPAIGN VISUAL", "cap": "Production — Batch Fabrication", "img": "media/camp/b19.webp"}, {"n": "Site — Shopfront Installation", "tag": "CAMPAIGN VISUAL", "cap": "Site — Shopfront Installation", "img": "media/camp/b20.webp"}, {"n": "Final Execution — Flagship Store Live", "tag": "CAMPAIGN VISUAL", "cap": "Final Execution — Flagship Store Live", "img": "media/camp/b21.webp"}, {"n": "Final Execution — Multi-Format Rollout", "tag": "CAMPAIGN VISUAL", "cap": "Final Execution — Multi-Format Rollout", "img": "media/camp/b22.webp"}], "C": [{"n": "Site Recce — Studio Measurement", "tag": "CAMPAIGN VISUAL", "cap": "Site Recce — Studio Measurement", "img": "media/camp/c23.webp"}, {"n": "Construction Grid Print Processing", "tag": "PRODUCTION FILE", "cap": "Construction Grid Print Processing", "img": "media/camp/c24.webp"}, {"n": "Die-Cut / Laser Cutting File", "tag": "PRODUCTION FILE", "cap": "Die-Cut / Laser Cutting File", "img": "media/camp/c25.webp"}, {"n": "Approval — Studio Before", "tag": "CAMPAIGN VISUAL", "cap": "Approval — Studio Before", "img": "media/camp/c26.webp"}, {"n": "Approval — Adaptation After (Day)", "tag": "PROPOSED · RENDER", "cap": "Approval — Adaptation After (Day)", "img": "media/camp/c27.webp"}, {"n": "Approval — Adaptation After (Night)", "tag": "PROPOSED · RENDER", "cap": "Approval — Adaptation After (Night)", "img": "media/camp/c28.webp"}, {"n": "Production — Print & Laser Packaging", "tag": "CAMPAIGN VISUAL", "cap": "Production — Print & Laser Packaging", "img": "media/camp/c29.webp"}, {"n": "Site — Studio Installation", "tag": "CAMPAIGN VISUAL", "cap": "Site — Studio Installation", "img": "media/camp/c30.webp"}, {"n": "Final Execution — Studio Day-One Live", "tag": "CAMPAIGN VISUAL", "cap": "Final Execution — Studio Day-One Live", "img": "media/camp/c31.webp"}, {"n": "Final Execution — Day-One Identity System", "tag": "CAMPAIGN VISUAL", "cap": "Final Execution — Day-One Identity System", "img": "media/camp/c32.webp"}], "D": [{"n": "Site Recce — Elevation Measurement", "tag": "CAMPAIGN VISUAL", "cap": "Site Recce — Elevation Measurement", "img": "media/camp/d33.webp"}, {"n": "Vector Geometry Print Proofing", "tag": "PRODUCTION FILE", "cap": "Vector Geometry Print Proofing", "img": "media/camp/d34.webp"}, {"n": "CNC Router Toolpath File", "tag": "PRODUCTION FILE", "cap": "CNC Router Toolpath File", "img": "media/camp/d35.webp"}, {"n": "Approval — Wall Before", "tag": "CAMPAIGN VISUAL", "cap": "Approval — Wall Before", "img": "media/camp/d36.webp"}, {"n": "Approval — Adaptation After (Day)", "tag": "PROPOSED · RENDER", "cap": "Approval — Adaptation After (Day)", "img": "media/camp/d37.webp"}, {"n": "Approval — Adaptation After (Night)", "tag": "PROPOSED · RENDER", "cap": "Approval — Adaptation After (Night)", "img": "media/camp/d38.webp"}, {"n": "Production — CNC Router Machining", "tag": "CAMPAIGN VISUAL", "cap": "Production — CNC Router Machining", "img": "media/camp/d39.webp"}, {"n": "Site — CNC Panel Installation", "tag": "CAMPAIGN VISUAL", "cap": "Site — CNC Panel Installation", "img": "media/camp/d40.webp"}, {"n": "Final Execution — Atrium CNC Live", "tag": "CAMPAIGN VISUAL", "cap": "Final Execution — Atrium CNC Live", "img": "media/camp/d41.webp"}, {"n": "Final Execution — Macro Tolerance Detail", "tag": "CAMPAIGN VISUAL", "cap": "Final Execution — Macro Tolerance Detail", "img": "media/camp/d42.webp"}], "E": [{"n": "Execution Guideline — Site Workflow", "tag": "GUIDELINE · PRESENTATION", "cap": "Execution Guideline Presentation — End-to-end 4-stage turnkey workflow from laser survey & load audit to night handover.", "img": "media/camp/e_guide_1.webp"}, {"n": "Execution Guideline — Wall Assembly", "tag": "GUIDELINE · PRESENTATION", "cap": "Execution Guideline Presentation — Exploded assembly showing MS sub-frame, IP65 LED matrix, 110mm diffuser & zero-bezel P1.8 lock.", "img": "media/camp/e_guide_2.webp"}, {"n": "Site Recce & Measurement", "tag": "CAMPAIGN VISUAL", "cap": "Site Recce & Measurement", "img": "media/camp/e43.webp"}, {"n": "Digital Print & Sync Processing", "tag": "PRODUCTION FILE", "cap": "Digital Print & Sync Processing", "img": "media/camp/e44.webp"}, {"n": "CNC Bezel Fabrication File", "tag": "CAMPAIGN · ART", "cap": "CNC Bezel Fabrication File", "img": "media/camp/e45.webp"}, {"n": "Approval — Site Before", "tag": "CAMPAIGN VISUAL", "cap": "Approval — Site Before", "img": "media/camp/e46.webp"}, {"n": "Approval — Adaptation After (Day)", "tag": "PROPOSED · RENDER", "cap": "Approval — Adaptation After (Day)", "img": "media/camp/e47.webp"}, {"n": "Approval — Adaptation After (Night)", "tag": "PROPOSED · RENDER", "cap": "Approval — Adaptation After (Night)", "img": "media/camp/e48.webp"}, {"n": "Production — Backlit & Screen Integration", "tag": "CAMPAIGN VISUAL", "cap": "Production — Backlit & Screen Integration", "img": "media/camp/e49.webp"}, {"n": "Site — Installation & Commissioning", "tag": "CAMPAIGN VISUAL", "cap": "Site — Installation & Commissioning", "img": "media/camp/e50.webp"}, {"n": "Final Execution — Continuous Surface Live", "tag": "CAMPAIGN VISUAL", "cap": "Final Execution — Continuous Surface Live", "img": "media/camp/e51.webp"}, {"n": "ArtViSiON — Production Design to Execution", "tag": "CAMPAIGN · ART", "cap": "ArtViSiON — Production Design to Execution", "img": "media/camp/e52.webp"}]};
   (window.X.CASES || []).forEach(function (c) {
     var camp = CAMP[c.key]; if (!camp) return;
     var drawn = c.stages.filter(function (st) { return st.kind !== "photo"; });
