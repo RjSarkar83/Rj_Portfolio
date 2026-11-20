@@ -401,3 +401,81 @@ html[data-rj-layout="mobile"] [data-m-page="case"]>.m-case-film-link{margin-top:
   .av-prelude button:focus-visible{outline-color:Highlight}
   .ap-file-mark{stroke:CanvasText}
 }
+
+/* Use the system pointer on the modal surfaces instead of the page's router bit. */
+:is(#x-case,#m-film,.rw-entry,.rg-mobile,.rg-zoom){cursor:auto}
+:is(#x-case,#m-film,.rw-entry,.rg-mobile,.rg-zoom) :is(a[href],button:not(:disabled),select,summary){cursor:pointer}
+:is(#x-case,#m-film,.rw-entry,.rg-mobile,.rg-zoom) button:disabled{cursor:default}
+:is(#m-film,.rw-entry,.rg-zoom)::backdrop{cursor:default}
+
+/* Service plates are live SVG elevations. The gallery boards are separate. */
+.av-service-frame:is(.imw,.m-card-image){
+  isolation:isolate;
+  background:radial-gradient(ellipse at 54% 38%,#382825 0%,#272023 51%,#171619 100%);
+  --av-outline:#f1cba6;--av-muted:#b59383;--av-line:#947368;
+  --av-signal:#ff6976;--av-lit:#694743;
+}
+.card .imw.av-service-frame{aspect-ratio:16 / 10}
+.card .imw.av-service-frame::after{display:none}
+#s-work .card{cursor:pointer}
+.av-service-frame > svg.av-service-art{
+  display:block;position:absolute;inset:0;width:100%;height:100%;pointer-events:none;stroke:none;fill:none;
+}
+.card .av-service-frame > svg.av-service-art{height:calc(100% - 16px)}
+.av-service-frame > svg.av-fit-wide{inset-inline:9%;width:82%}
+@media (min-width:761px){
+  .card.x-e .imw.av-service-frame{aspect-ratio:auto;min-height:52px;container:av-execution / size}
+}
+/* Keep the short Execution frame readable without stretching the SVG or covering Enter. */
+@container av-execution (max-height:74px){
+  .card .av-service-frame > svg.av-fit-wide{inset:0 auto 0 33px;width:calc(100% - 144px);height:100%}
+  .av-fit-wide :is(.av-corners,.av-datum){display:none}
+}
+.card .av-service-frame .kk,.av-service-frame .m-card-key{
+  color:#ffe2be;background:#21191b;border:1px solid #856961;box-shadow:none;
+}
+.card .av-service-frame .kk{inset:7px auto auto 7px;border-radius:6px;padding:5px 7px}
+.av-service-frame :is(.av-corners,.av-datum,.av-detail,.av-ink,.av-hot,.av-glint){fill:none;stroke-linecap:round;stroke-linejoin:round}
+.av-service-frame .av-corners{stroke:#846964;stroke-width:1.1;opacity:.8}
+.av-service-frame .av-datum{stroke:var(--av-line);stroke-width:1.2;stroke-dasharray:2 4}
+.av-service-frame .av-detail{stroke:var(--av-muted);stroke-width:1.35}
+.av-service-frame .av-ink{stroke:var(--av-outline);stroke-width:2.2}
+.av-service-frame .av-hot{stroke:var(--av-signal);stroke-width:2.4}
+.av-service-frame .av-glint{stroke:#e3bd9f;stroke-width:1.2;opacity:.75}
+.av-service-frame .av-fill{fill:#2f2325}
+.av-service-frame .av-base{fill:#573934;stroke:#ac7e70;stroke-width:1.3}
+.av-service-frame .av-panel{fill:#563438;stroke:#e2ad88;stroke-width:1.35}
+.av-service-frame .av-fascia{fill:var(--av-lit);stroke:#d5a48d;stroke-width:1.35}
+.av-service-frame .av-screen{fill:#27262e;stroke:#bd9a90;stroke-width:1.35}
+.av-service-frame .av-dot,.av-service-frame .av-rose{fill:var(--av-signal)}
+.av-service-frame .av-solid{fill:var(--av-outline)}
+.av-service-frame .av-wash{fill:#edb391;opacity:.1}
+.av-service-frame .av-trace{stroke-dasharray:1;stroke-dashoffset:0}
+.av-service-frame .av-late{--av-etch-start:230ms}
+.av-service-frame .av-1{--av-step:120ms}
+.av-service-frame .av-2{--av-step:245ms}
+.av-service-frame .av-3{--av-step:370ms}
+.av-service-frame .av-up{--av-dy:-7px}
+.av-service-frame .av-right{--av-dx:10px;--av-dy:0px}
+:is(.av-service-frame:focus-visible,.m-card:focus-visible .av-service-frame){--av-signal:#ff9d9d;--av-lit:#805550}
+@media (any-hover:hover){
+  :is(.card:hover,.m-card:hover) .av-service-frame{--av-signal:#ff9d9d;--av-lit:#805550}
+}
+@media (prefers-reduced-motion:no-preference){
+  :is(#s-work.on .card.x-lit-on,.av-ink-in) .av-trace{
+    animation:av-etch 1.08s cubic-bezier(.32,.58,.32,1) var(--av-etch-start,45ms) both;
+  }
+  :is(#s-work.on .card.x-lit-on,.av-ink-in) .av-piece{
+    animation:av-register .74s cubic-bezier(.22,.62,.29,1) var(--av-step,140ms) both;
+  }
+  .av-service-frame .av-hot{transition:stroke .24s ease-out}
+  .av-service-frame :is(.av-dot,.av-rose,.av-fascia){transition:fill .24s ease-out}
+}
+@keyframes av-etch{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@keyframes av-register{from{transform:translate(var(--av-dx,0px),var(--av-dy,7px));opacity:.2}to{transform:none;opacity:1}}
+@media (forced-colors:active){
+  .av-service-frame .av-service-art :is(.av-ink,.av-detail,.av-hot,.av-corners,.av-datum,.av-glint){stroke:CanvasText}
+  .av-service-frame .av-service-art :is(.av-fill,.av-panel,.av-base,.av-screen,.av-fascia){fill:Canvas;stroke:CanvasText}
+  .av-service-frame .av-service-art :is(.av-dot,.av-rose,.av-solid,.av-wash){fill:CanvasText}
+  .av-service-frame :is(.kk,.m-card-key){border-color:CanvasText}
+}

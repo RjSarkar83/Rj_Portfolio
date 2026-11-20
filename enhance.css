@@ -24,8 +24,10 @@
 
 /* ───────────────────────── 0. base states ───────────────────────── */
 html.x-dragging, html.x-dragging *{ user-select:none !important; -webkit-user-select:none !important }
-body.x-hidecursor, body.x-hidecursor a, body.x-hidecursor button,
-body.x-hidecursor .card{ cursor:none !important }
+/* The router cursor belongs to the scroll film, never to an overlay or native dialog. */
+html:not(.rw-playing) body.x-hidecursor:not(.x-cased),
+html:not(.rw-playing) body.x-hidecursor:not(.x-cased) :is(a,button,.card){ cursor:none !important }
+html.rw-playing #x-cursor, body.x-cased #x-cursor{ display:none }
 .x-noscroll{ overflow:hidden !important }
 
 /* everything in this layer is furniture: never steal a click */

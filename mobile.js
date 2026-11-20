@@ -28,7 +28,7 @@
   }
   function projectCard(p,i) {
     return '<a class="m-card" data-workshop-case="'+i+'" href="#'+caseKey(i)+'" aria-label="Enter the '+text(p.title)+' gallery: '+text(p.tech)+'">' +
-      '<span class="m-card-image"><img src="'+text(p.img)+'" width="640" height="360" alt="" loading="lazy" decoding="async"><span class="m-card-key" aria-hidden="true">'+text(p.key)+'</span></span>' +
+      '<span class="m-card-image av-service-frame">'+window.RJServicePlates.draw(p.key)+'<span class="m-card-key" aria-hidden="true">'+text(p.key)+'</span></span>' +
       '<span class="m-card-copy"><span class="m-card-head"><span><strong>'+text(p.title)+'</strong><span class="m-card-tech">'+text(p.tech)+'</span></span><span class="m-card-arrow">'+icon('right')+'</span></span><span class="m-card-line">'+text(p.line)+'</span></span></a>';
   }
   function renderContactAndAbout() {
@@ -62,8 +62,16 @@
     if (k === route && !options.force) return;
     route = k;
     var key = isCase(k) ? 'case' : k;
-    if (key === 'work' && !workReady) { q('#m-work-cards').innerHTML = C.projects.map(projectCard).join(''); workReady = true; }
-    if (key === 'home' && !featuredReady) { q('#m-featured').innerHTML = projectCard(C.projects[3],3); featuredReady = true; }
+    if (key === 'work' && !workReady) {
+      var workCards = q('#m-work-cards');
+      workCards.innerHTML = C.projects.map(projectCard).join('');
+      window.RJServicePlates.watch(workCards); workReady = true;
+    }
+    if (key === 'home' && !featuredReady) {
+      var featured = q('#m-featured');
+      featured.innerHTML = projectCard(C.projects[3],3);
+      window.RJServicePlates.watch(featured); featuredReady = true;
+    }
     if (key === 'case') renderCase(k.charCodeAt(5)-97, options);
     if (key === 'work') window.RJWorkshop.warm();
     pages.forEach(function (p) { p.hidden = p.dataset.mPage !== key; });

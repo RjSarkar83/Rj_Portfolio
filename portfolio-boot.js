@@ -12,11 +12,11 @@
     });
   }
   window.rjStyles.then(function () {
-    if (!window.CONFIG || !window.RJIntro || !window.RJCases || !window.RJGallery || !window.RJWorkshop) throw new Error('A required portfolio script is missing');
+    if (!window.CONFIG || !window.RJServicePlates || !window.RJIntro || !window.RJCases || !window.RJGallery || !window.RJWorkshop) throw new Error('A required portfolio script is missing');
     mount.parentNode.replaceChild(mount.content, mount);
     window.RJIntro.labelDuration(document);
     if (mobile) return script('mobile.js' + revision);
-    return script('app.js').then(function () { return script('enhance.js' + revision); }).then(function () {
+    return script('app.js' + revision).then(function () { return script('enhance.js' + revision); }).then(function () {
       var caseLink = location.hash.match(/^#work\/([a-e])$/i);
       if (caseLink && window.X) window.X.openCase(caseLink[1].toUpperCase().charCodeAt(0) - 65, document.getElementById('av-watch-intro'));
     });

@@ -32,10 +32,10 @@
   $("#wTitle").innerHTML = C.workTitle || "Selected work";
   $("#wCards").innerHTML = C.projects.map(function (p) {
     return '<div class="card">' +
-             (p.img ? '<div class="imw">' +
-                        (p.key ? '<span class="kk">' + p.key + '</span>' : '') +
-                        '<img class="im" src="' + p.img + '" alt="' + p.title + ' — ' + p.tech + '" loading="lazy" decoding="async">' +
-                      '</div>' : '') +
+             '<div class="imw av-service-frame">' +
+               window.RJServicePlates.draw(p.key) +
+               '<span class="kk" aria-hidden="true">' + p.key + '</span>' +
+             '</div>' +
              '<div class="bd">' +
                '<div class="t">' + p.title + '</div>' +
                '<div class="tech">' + p.tech + '</div>' +

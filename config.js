@@ -37,32 +37,27 @@ window.CONFIG = {
     { key:   "A",
       title: "Advertising",
       tech:  "Event design",
-      line:  "Stands, portals and stages drawn, fabricated and standing by the morning.",
-      img:   "media/camp/t/a09.webp" },
+      line:  "Stands, portals and stages drawn, fabricated and standing by the morning." },
 
     { key:   "B",
       title: "Branding",
       tech:  "National retail rollout",
-      line:  "One ratio drawing that survives 300+ shopfronts in 15 sectors without a redraw.",
-      img:   "media/camp/t/b21.webp" },
+      line:  "One ratio drawing that survives 300+ shopfronts in 15 sectors without a redraw." },
 
     { key:   "C",
       title: "Creative",
       tech:  "Startup identity",
-      line:  "A mark, a construction grid and the production files that ship on day one.",
-      img:   "media/camp/t/c31.webp" },
+      line:  "A mark, a construction grid and the production files that ship on day one." },
 
     { key:   "D",
       title: "Designing",
       tech:  "Architectural CNC",
-      line:  "Artwork redrawn as geometry a router can cut, to ±0.5 mm over 2400 mm.",
-      img:   "media/camp/t/d41.webp" },
+      line:  "Artwork redrawn as geometry a router can cut, to ±0.5 mm over 2400 mm." },
 
     { key:   "E",
       title: "Execution",
       tech:  "Digital–Physical integration",
-      line:  "Backlit fabrication and live screens detailed to read as one continuous surface.",
-      img:   "media/camp/t/e51.webp" }
+      line:  "Backlit fabrication and live screens detailed to read as one continuous surface." }
   ],
 
   /* 8 — skills ---------------------------------------------- */
