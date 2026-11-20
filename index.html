@@ -5,14 +5,38 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Ranjan Sarkar — Creative Lead, Design to Execution</title>
 <meta name="description" content="Twelve years taking retail and environmental brand work from first sketch to installed, lit and inspected object.">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#0e0f11">
 <meta name="color-scheme" content="dark">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="format-detection" content="telephone=no">
-<link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="enhance.css">  <!-- ░░ added: fabrication layer ░░ -->
+<style>html{background:#0e0f11;color:#f9f6f0}html[data-rj-layout="desktop"]{background:#000}</style>
+<script>
+(function () {
+  var portrait = '(max-width: 780px)';
+  var shortTouch = '(max-width: 1024px) and (max-height: 540px) and (pointer: coarse)';
+  var request = new URLSearchParams(location.search).get('view');
+  var mobile = request === 'mobile' || (request !== 'desktop' && matchMedia(portrait + ', ' + shortTouch).matches);
+  // Keep the same interface through phone rotation and Safari toolbar resizing.
+  document.documentElement.dataset.rjLayout = mobile ? 'mobile' : 'desktop';
+  document.querySelector('meta[name="theme-color"]').content = mobile ? '#0e0f11' : '#000000';
+  if (!mobile) {
+    [['fonts/Montserrat-var.woff2','font'],['fonts/Playfair-var.woff2','font'],['media/frames/x0_back.webp','image']].forEach(function (v) {
+      var l = document.createElement('link'); l.rel = 'preload'; l.as = v[1]; l.href = v[0];
+      if (l.as === 'font') { l.crossOrigin = 'anonymous'; l.type = 'font/woff2'; }
+      document.head.appendChild(l);
+    });
+  }
+  window.rjStyles = Promise.all((mobile ? ['mobile.css?v=mobile-webm-1'] : ['style.css', 'enhance.css?v=mobile-webm-1']).map(function (url) {
+    return new Promise(function (finish) {
+      var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = url;
+      l.onload = finish; l.onerror = function () { console.error('Stylesheet unavailable:',url); finish(); }; document.head.appendChild(l);
+    });
+  }));
+})();
+</script>
+<link rel="apple-touch-icon" href="media/apple-touch-icon.png">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22><rect width=%2232%22 height=%2232%22 fill=%22%23000%22/><circle cx=%2216%22 cy=%2216%22 r=%227%22 fill=%22%23E30613%22/></svg>">
 
 <!-- ░░ 2027 SEO / share graph — absolute URLs for the Rj_Portfolio Pages home ░░ -->
@@ -36,9 +60,6 @@
 <meta name="twitter:title" content="Ranjan Sarkar — Creative Lead, Design to Execution">
 <meta name="twitter:description" content="360° A-to-Z production & end-to-end branding, design to execution. 10,000+ retail signage units, 150+ identities, 15+ sectors.">
 <meta name="twitter:image" content="https://rjsarkar83.github.io/Rj_Portfolio/media/og.jpg?v=2">
-<link rel="preload" href="fonts/Montserrat-var.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="fonts/Playfair-var.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="media/frames/x0_back.webp" as="image">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -90,6 +111,7 @@
 </head>
 <body>
 
+<template id="rj-desktop-template">
 <!-- ░░ loader ░░ -->
 <div id="loader">
   <div class="ln" id="ldName"><span class="x-mt">RANJAN</span><br><em>SARKAR</em></div>
@@ -102,6 +124,10 @@
 <header id="bar">
   <div class="nm" id="barName">Rj_Sarkar</div>
   <nav id="nav"></nav>
+  <button type="button" id="av-watch-intro" aria-haspopup="dialog" aria-controls="x-case" hidden>
+    <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M5 2.6 13 8 5 13.4Z" fill="currentColor"/></svg>
+    <span>Watch Intro</span>
+  </button>
 </header>
 
 <!-- ░░ the film ░░ -->
@@ -165,11 +191,118 @@
 
 <!-- ░░ scroll runway ░░ -->
 <div id="runway"></div>
+</template>
 
-<noscript><div style="position:fixed;inset:0;z-index:999;background:#000;color:#f5efe7;display:flex;align-items:center;justify-content:center;padding:2rem;text-align:center;font-family:system-ui,sans-serif">This portfolio is a scroll-driven film. Please enable JavaScript, or email rjsarkar@icloud.com.</div></noscript>
+<template id="rj-mobile-template">
+<svg class="m-symbols" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" width="0" height="0">
+  <symbol id="mi-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v9a2 2 0 0 1-2 2h-4v-6H9v6H5a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="mi-work" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="14" rx="2.5"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12a18 18 0 0 0 18 0m-9 1v2"/></symbol>
+  <symbol id="mi-about" viewBox="0 0 24 24"><circle cx="12" cy="7.5" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></symbol>
+  <symbol id="mi-contact" viewBox="0 0 24 24"><path d="M21 11.5a8.7 8.7 0 0 1-8.9 8.5 9.3 9.3 0 0 1-3.5-.7L4 21l1.4-4.4A8.2 8.2 0 0 1 3 11.5 8.8 8.8 0 0 1 12 3a8.8 8.8 0 0 1 9 8.5Z"/><path d="M8 11.5h.1m3.9 0h.1m3.9 0h.1" stroke-width="2.5"/></symbol>
+  <symbol id="mi-right" viewBox="0 0 24 24"><path d="M4 12h15m-6-6 6 6-6 6"/></symbol>
+  <symbol id="mi-out" viewBox="0 0 24 24"><path d="M6 18 18 6M8 6h10v10"/></symbol>
+  <symbol id="mi-back" viewBox="0 0 24 24"><path d="m14.5 5.5-7 6.5 7 6.5"/></symbol>
+  <symbol id="mi-play" viewBox="0 0 24 24"><path d="M8 4.9a.8.8 0 0 0-1.2.7v12.8a.8.8 0 0 0 1.2.7l10.1-6.4a.8.8 0 0 0 0-1.4z" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="mi-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+  <symbol id="mi-down" viewBox="0 0 24 24"><path d="m6.5 9 5.5 6 5.5-6"/></symbol>
+  <symbol id="mi-download" viewBox="0 0 24 24"><path d="M12 3v12m-4-4 4 4 4-4M5 16v4h14v-4"/></symbol>
+  <symbol id="mi-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4 7 8 6 8-6"/></symbol>
+  <symbol id="mi-expand" viewBox="0 0 24 24"><path d="M8 4H4v4m12-4h4v4M4 16v4h4m12-4v4h-4"/></symbol>
+</svg>
+<a class="m-skip" href="#m-main">Skip to content</a>
+<header class="m-header">
+  <div class="m-wrap m-header-inner">
+    <a class="m-brand" href="#home" aria-label="Ranjan Sarkar — Home">
+      <span class="m-mark"><img src="media/artvision-mobile/mark.webp" width="32" height="22" alt=""></span>
+      <span class="m-wordmark"><strong>Ranjan Sarkar</strong><small>ArtViSiON Production Design</small></span>
+    </a>
+    <div class="m-case-header" hidden><a class="m-circle" href="#work" data-case-back aria-label="Back to selected work"><svg aria-hidden="true"><use href="#mi-back"/></svg></a><span><small>Selected work</small><strong id="m-case-header-name"></strong></span></div>
+    <a class="m-circle m-header-contact" href="#contact" aria-label="Contact Ranjan"><svg aria-hidden="true"><use href="#mi-out"/></svg></a>
+  </div>
+</header>
+<main id="m-main" class="m-wrap m-main" tabindex="-1">
+  <section data-m-page="home" aria-labelledby="m-home-title">
+    <div class="m-hero">
+      <p class="m-kicker"><span class="m-signal"></span> Creative lead <span class="m-slash">/</span> Indore, India</p>
+      <h1 class="m-display" id="m-home-title" tabindex="-1">Design to<br>execution<span class="m-red">.</span></h1>
+      <p class="m-hero-copy">Brand identity, retail signage and production design. From first sketch to finished build.</p>
+      <div class="m-actions m-hero-actions">
+        <a class="m-btn m-primary" href="#work">Explore work <svg aria-hidden="true"><use href="#mi-right"/></svg></a>
+        <button class="m-btn m-secondary" type="button" data-m-intro aria-haspopup="dialog" aria-controls="m-film"><svg aria-hidden="true"><use href="#mi-play"/></svg> Watch Intro</button>
+      </div>
+    </div>
+    <button class="m-cover" type="button" data-m-intro aria-label="Watch the ArtViSiON Intro, The Working Line, 2 minutes 17 seconds" aria-haspopup="dialog" aria-controls="m-film">
+      <img src="media/artvision-mobile/working-line-cover.webp" width="1120" height="674" alt="" fetchpriority="high" decoding="async">
+      <span class="m-cover-copy"><span class="m-cover-label"><i></i> STUDIO FILM</span><strong>The<br>Working Line</strong><span class="m-cover-time"><i><svg aria-hidden="true"><use href="#mi-play"/></svg></i> 02:17</span></span>
+    </button>
+    <div class="m-section-head m-home-work-head"><div><p class="m-kicker">01 <span class="m-slash">/</span> Portfolio</p><h2>Selected work</h2></div><a class="m-text-link" href="#work">View all <svg aria-hidden="true"><use href="#mi-right"/></svg></a></div>
+    <div id="m-featured"></div>
+    <div class="m-home-foot"><p>A brand should work on a sheet, on a wall and on site.</p><a class="m-text-link" href="#about">About the practice <svg aria-hidden="true"><use href="#mi-right"/></svg></a></div>
+  </section>
+  <section data-m-page="work" aria-labelledby="m-work-title" hidden>
+    <div class="m-page-lead"><p class="m-kicker"><span class="m-signal"></span> 01 <span class="m-slash">/</span> Portfolio</p><h1 id="m-work-title" class="m-display m-sub-display" tabindex="-1">Selected work<span class="m-red">.</span></h1><p>Five disciplines, from concept to installation. Open a case to see the process, not just the result.</p></div>
+    <div class="m-section-rule"><span>THE CASE STUDIES</span><span>01–05</span></div>
+    <div id="m-work-cards" class="m-cards"></div>
+  </section>
+  <section data-m-page="case" aria-labelledby="m-case-title" hidden>
+    <div id="m-case-intro"></div>
+    <section class="m-case-boards" aria-labelledby="m-board-title">
+      <div class="m-board-head"><div><p class="m-kicker">Project process</p><h2 id="m-board-title" tabindex="-1">Process boards</h2></div><span class="m-board-index" id="m-board-index" role="status" aria-atomic="true"></span></div>
+      <label class="m-board-picker" for="m-board-select"><span class="m-visually-hidden">Jump to a process board</span><select id="m-board-select"></select><svg aria-hidden="true"><use href="#mi-down"/></svg></label>
+      <div id="m-board-content"></div>
+      <div class="m-board-nav" aria-label="Board navigation">
+        <button type="button" id="m-board-prev" class="m-btn m-secondary"><svg aria-hidden="true"><use href="#mi-back"/></svg> Previous</button>
+        <button type="button" id="m-board-next" class="m-btn m-primary">Next board <svg aria-hidden="true"><use href="#mi-right"/></svg></button>
+      </div>
+    </section>
+    <nav class="m-case-links" aria-label="Other work"><a class="m-btn m-secondary" href="#work" data-case-back>All work</a><a class="m-btn m-secondary" id="m-next-case" href="#work">Next case <svg aria-hidden="true"><use href="#mi-right"/></svg></a></nav>
+  </section>
+  <section data-m-page="about" aria-labelledby="m-about-title" hidden>
+    <div class="m-page-lead"><p class="m-kicker"><span class="m-signal"></span> 02 <span class="m-slash">/</span> The practice</p><h1 id="m-about-title" class="m-display m-about-title" tabindex="-1">About Ranjan<span class="m-red">.</span></h1><p id="m-about-strap" class="m-quote"></p><p id="m-about-bio"></p></div>
+    <div class="m-stats" id="m-stats"></div>
+    <section class="m-info" aria-labelledby="m-exp-title">
+      <div class="m-section-head"><div><p class="m-kicker">On site &amp; in studio</p><h2 id="m-exp-title">Experience</h2></div></div>
+      <div id="m-experience" class="m-timeline"></div>
+      <details class="m-details"><summary>Education &amp; earlier <svg aria-hidden="true"><use href="#mi-down"/></svg></summary><div id="m-education" class="m-timeline"></div></details>
+      <a id="m-resume" class="m-btn m-secondary m-resume" href="media/resume.pdf" download>Download résumé <svg aria-hidden="true"><use href="#mi-download"/></svg></a>
+    </section>
+    <section class="m-info" aria-labelledby="m-skills-title"><div class="m-section-head"><div><p class="m-kicker">Drawing board to dispatch</p><h2 id="m-skills-title">Capabilities</h2></div></div><ul id="m-skills" class="m-chips"></ul></section>
+  </section>
+  <section data-m-page="contact" aria-labelledby="m-contact-title" hidden>
+    <div class="m-page-lead m-contact-lead"><p class="m-kicker"><span class="m-signal"></span> 03 <span class="m-slash">/</span> Direct line</p><h1 id="m-contact-title" class="m-display m-sub-display" tabindex="-1">Let’s build<br>something real<span class="m-red">.</span></h1><p>Tell me the city, share a few site photos, and add approximate dimensions and your deadline. I’ll use that to scope the first conversation.</p></div>
+    <div class="m-contact-card"><p class="m-kicker">Start a conversation</p><div class="m-actions"><a class="m-btn m-primary" id="m-whatsapp" href="https://wa.me/919009001551" target="_blank" rel="noopener">WhatsApp <svg aria-hidden="true"><use href="#mi-out"/></svg></a><a class="m-btn m-secondary" id="m-email" href="mailto:rjsarkar@icloud.com"><svg aria-hidden="true"><use href="#mi-mail"/></svg> Email me</a></div><div class="m-contact-rows" id="m-direct-links"></div></div>
+    <section class="m-info"><div class="m-section-head"><div><p class="m-kicker">Elsewhere</p><h2>Find me online</h2></div></div><div id="m-social" class="m-link-grid"></div><details class="m-details"><summary>ArtViSiON ecosystem <svg aria-hidden="true"><use href="#mi-down"/></svg></summary><div id="m-ecosystem" class="m-link-grid"></div></details></section>
+  </section>
+  <footer class="m-footer"><span>ArtViSiON Production Design</span><span>Indore · India</span></footer>
+</main>
+<nav id="m-tabbar" class="m-tabbar" aria-label="Portfolio navigation">
+  <a href="#home" data-m-tab="home" aria-current="page"><span class="m-tab-icon"><svg aria-hidden="true"><use href="#mi-home"/></svg></span><span>Home</span></a>
+  <a href="#work" data-m-tab="work"><span class="m-tab-icon"><svg aria-hidden="true"><use href="#mi-work"/></svg></span><span>Work</span></a>
+  <a href="#about" data-m-tab="about"><span class="m-tab-icon"><svg aria-hidden="true"><use href="#mi-about"/></svg></span><span>About</span></a>
+  <a href="#contact" data-m-tab="contact"><span class="m-tab-icon"><svg aria-hidden="true"><use href="#mi-contact"/></svg></span><span>Contact</span></a>
+</nav>
+<dialog id="m-film" class="m-film" aria-modal="true" aria-labelledby="m-film-title" aria-describedby="m-film-note">
+  <div class="m-film-handle" aria-hidden="true"></div>
+  <div class="m-film-header"><div><p class="m-kicker"><span class="m-signal"></span> Studio film <span class="m-slash">/</span> 02:17</p><h2 id="m-film-title">ArtViSiON Introduction</h2></div><button type="button" class="m-circle m-film-x" aria-label="Close Intro" autofocus><svg aria-hidden="true"><use href="#mi-close"/></svg></button></div>
+  <div class="m-film-body">
+    <div class="m-film-player"><video id="m-film-video" playsinline webkit-playsinline preload="none" tabindex="0" width="640" height="360" aria-label="ArtViSiON Introduction, Hindi edition">Your browser does not support embedded video.</video>
+      <button type="button" class="m-film-play" id="m-film-play"><svg aria-hidden="true"><use href="#mi-play"/></svg><span>Play video</span></button>
+    </div>
+    <div class="m-film-options"><p class="m-film-edition" id="m-film-edition">Bharat edition</p>
+      <div class="m-film-language" role="group" aria-label="Film language"><button type="button" data-intro-lang="hi" aria-pressed="true">Hindi</button><button type="button" data-intro-lang="bn" aria-pressed="false">Bengali</button><button type="button" data-intro-lang="en" aria-pressed="false">English</button></div>
+      <p class="m-film-note" id="m-film-note">Language changes the picture and the narration.</p>
+      <p id="m-film-status" class="m-film-status" role="status" hidden></p>
+      <a class="m-btn m-secondary m-film-explore" href="#work" id="m-film-explore">Explore work <svg aria-hidden="true"><use href="#mi-right"/></svg></a>
+    </div>
+  </div>
+</dialog>
+</template>
+<p id="rj-boot-error" hidden style="padding:2rem;font:16px system-ui">Couldn’t start the portfolio. Reload the page or <a style="color:inherit" href="mailto:rjsarkar@icloud.com">email Ranjan Sarkar</a>.</p>
 
-<script src="config.js"></script>
-<script src="app.js"></script>
-<script src="enhance.js"></script>          <!-- ░░ added: fabrication layer ░░ -->
+<noscript><main style="margin:8vh auto;max-width:42rem;padding:2rem;font:16px/1.6 system-ui"><h1>Ranjan Sarkar</h1><p>ArtViSiON Production Design · Indore</p><p>Enable JavaScript to browse the films and case studies, or <a style="color:inherit" href="mailto:rjsarkar@icloud.com">get in touch by email</a>.</p><p><a style="color:inherit" href="media/resume.pdf">Download résumé</a></p></main></noscript>
+<script defer src="config.js"></script>
+<script defer src="intro-player.js?v=mobile-webm-1"></script>
+<script defer src="portfolio-cases.js?v=mobile-webm-1"></script>
+<script defer src="portfolio-boot.js?v=mobile-webm-1"></script>
 </body>
 </html>
