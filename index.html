@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-rj-release="av-final-2">
+<html lang="en" data-rj-release="av-final-3">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -292,14 +292,54 @@
   </div>
 </dialog>
 </template>
+<!-- One HTML title sequence, mounted in the active Intro layout. -->
+<template id="av-intro-titles">
+  <section class="av-prelude" aria-label="ArtViSiON opening titles" hidden>
+    <header class="ap-header" aria-hidden="true">
+      <span class="ap-eyebrow"><i></i> Studio titles</span><span><b data-av-number></b> <span class="ap-muted">/</span> <span data-av-total></span></span>
+    </header>
+    <div class="ap-stage">
+      <article class="ap-slide ap-studio" data-av-name="Studio" data-av-hold="6000" hidden>
+        <h2 class="ap-identity ap-rise"><span class="ap-infinity">∞</span> <span>ArtViSi<span class="ap-on">ON</span>:</span> <small>PRODUCTion DESiGN</small></h2>
+        <div class="ap-promise ap-rise"><strong>360°</strong> <p><span>A-to-Z</span> Production &amp; <span>End-to-End</span> Branding Design to Execution Solutions.</p></div>
+        <p class="ap-pillars ap-rise"><span class="ap-arrow" aria-hidden="true">➤</span> <span>• ADVERTiSiNG</span> <span>• BRANDiNG</span> <span>• CREATiVE</span> <span>• DESiGNiNG</span> <span>• EXECUTiON</span> <span class="ap-arrow" aria-hidden="true">- ➤</span></p>
+      </article>
+      <article class="ap-slide" data-av-name="Services" data-av-hold="6500" hidden>
+        <h2 class="ap-display ap-rise">Design to <em>execution.</em></h2>
+        <ul class="ap-grid ap-services">
+          <li class="ap-card ap-rise"><span class="ap-code" aria-hidden="true">01</span><div><h3>Brand Identity</h3><p>Logo, Colour &amp; Guideline</p></div></li>
+          <li class="ap-card ap-rise"><span class="ap-code" aria-hidden="true">02</span><div><h3>Digital &amp; Print</h3><p>Social Media &amp; Campaign Artwork</p></div></li>
+          <li class="ap-card ap-rise"><span class="ap-code" aria-hidden="true">03</span><div><h3>Retail &amp; Signage</h3><p>Storefront Graphics &amp; Display</p></div></li>
+          <li class="ap-card ap-rise"><span class="ap-code" aria-hidden="true">04</span><div><h3>Packaging &amp; Event</h3><p>Pack Layout BACKDROP &amp; STANDEE</p></div></li>
+        </ul>
+      </article>
+      <article class="ap-slide" data-av-name="Files" data-av-hold="5100" hidden>
+        <h2 class="ap-display ap-rise">Ready to <em>produce.</em></h2>
+        <ul class="ap-grid ap-files">
+          <li class="ap-card ap-rise"><div class="ap-file-mark ap-ink" aria-hidden="true"></div><div><h3>CMYK PRINT</h3><p>Print-ready artwork</p></div></li>
+          <li class="ap-card ap-rise"><svg class="ap-file-mark" aria-hidden="true" viewBox="0 0 48 24" width="48" height="24"><path d="M1 19h15V5h12l8 14h11M16 2v4m20 14v3"/></svg><div><h3>CNC/LASER DXF</h3><p>File for cutting</p></div></li>
+          <li class="ap-card ap-rise"><svg class="ap-file-mark" aria-hidden="true" viewBox="0 0 48 24" width="48" height="24"><path d="M5 5h38m0 9H5M5 1v22M43 1v22M2 8l6-6m32 6 6-6M13 19h22"/></svg><div><h3>VENDOR SPECS</h3><p>Dimensions, materials, and drawings</p></div></li>
+        </ul>
+      </article>
+    </div>
+    <footer class="ap-footer">
+      <div class="ap-steps" role="group" aria-label="Opening title screens" data-av-steps></div>
+      <div class="ap-controls">
+        <button type="button" class="ap-pause" data-av-pause aria-label="Pause titles">Pause</button>
+        <button type="button" class="ap-skip" data-av-skip>Skip to video <svg aria-hidden="true" viewBox="0 0 20 20" width="18" height="18"><path d="M4 4l8 6-8 6V4Zm10 0v12"/></svg></button>
+      </div>
+    </footer>
+    <p class="rg-sr" role="status" data-av-note></p>
+  </section>
+</template>
 <p id="rj-boot-error" hidden style="padding:2rem;font:16px system-ui">Couldn’t start the portfolio. Reload the page or <a style="color:inherit" href="mailto:rjsarkar@icloud.com">email Ranjan Sarkar</a>.</p>
 
 <noscript><main style="margin:8vh auto;max-width:42rem;padding:2rem;font:16px/1.6 system-ui"><h1>Ranjan Sarkar</h1><p>ArtViSiON Production Design · Indore</p><p>Enable JavaScript to browse the films and case studies, or <a style="color:inherit" href="mailto:rjsarkar@icloud.com">get in touch by email</a>.</p><p><a style="color:inherit" href="media/resume.pdf">Download résumé</a></p></main></noscript>
 <script defer src="config.js"></script>
-<script defer src="intro-player.js?v=av-final-2"></script>
-<script defer src="portfolio-cases.js?v=av-final-2"></script>
-<script defer src="workshop-gallery.js?v=av-final-2"></script>
-<script defer src="workshop-entry.js?v=av-final-2"></script>
-<script defer src="portfolio-boot.js?v=av-final-2"></script>
+<script defer src="intro-player.js?v=av-final-3"></script>
+<script defer src="portfolio-cases.js?v=av-final-3"></script>
+<script defer src="workshop-gallery.js?v=av-final-3"></script>
+<script defer src="workshop-entry.js?v=av-final-3"></script>
+<script defer src="portfolio-boot.js?v=av-final-3"></script>
 </body>
 </html>

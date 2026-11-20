@@ -20,6 +20,99 @@
       node.setAttribute('aria-label','Watch the ArtViSiON Intro, The Working Line, ' + Number(parts[0]) + ' minutes ' + Number(parts[1]) + ' seconds');
     });
   }
+  // A single, pausable text prelude precedes the selected language film.
+  function createPrelude(o, onFinish) {
+    var template = document.getElementById('av-intro-titles');
+    var deck = o.video.closest('.m-film-body, .xc-intro-inner');
+    if (!template || !template.content || !deck) return null;
+
+    var box = template.content.firstElementChild.cloneNode(true);
+    var scroller = deck.parentNode;
+    scroller.insertBefore(box,deck);
+    deck.setAttribute('data-av-film-deck','');
+    var slides = Array.prototype.slice.call(box.querySelectorAll('[data-av-hold]'));
+    var steps = box.querySelector('[data-av-steps]');
+    var stage = box.querySelector('.ap-stage');
+    var number = box.querySelector('[data-av-number]');
+    var note = box.querySelector('[data-av-note]');
+    var pause = box.querySelector('[data-av-pause]');
+    var skip = box.querySelector('[data-av-skip]');
+    var current = 0, duration = 0, elapsed = 0, last = null, frame = 0;
+    var showing = false, paused = false;
+    var numberOf = function (i) { return ('0'+i).slice(-2); };
+    box.querySelector('[data-av-total]').textContent = numberOf(slides.length);
+    var buttons = slides.map(function (slide,i) {
+      var b = document.createElement('button'), n = document.createElement('b');
+      b.type = 'button'; n.textContent = numberOf(i+1);
+      b.appendChild(n); b.appendChild(document.createTextNode(slide.dataset.avName));
+      steps.appendChild(b);
+      b.addEventListener('click',function () { show(i); });
+      return b;
+    });
+
+    function stopClock() { cancelAnimationFrame(frame); frame = 0; last = null; }
+    function updateClock() {
+      stopClock();
+      box.toggleAttribute('data-av-suspended',document.hidden);
+      if (showing && !paused && !document.hidden) frame = requestAnimationFrame(tick);
+    }
+    function show(i) {
+      if (!showing) return;
+      current = i; duration = Number(slides[i].dataset.avHold); elapsed = 0;
+      box.style.setProperty('--ap-progress','0');
+      box.toggleAttribute('data-av-moving',!paused);
+      slides.forEach(function (slide,j) { slide.hidden = i !== j; });
+      buttons.forEach(function (b,j) { b.setAttribute('aria-current',i===j ? 'step' : 'false'); });
+      stage.scrollTop = 0;
+      number.textContent = numberOf(i+1);
+      note.textContent = slides[i].dataset.avName+' title, '+(i+1)+' of '+slides.length;
+      updateClock();
+    }
+    function tick(t) {
+      if (!showing || paused || document.hidden) return;
+      if (last !== null) elapsed += t-last;
+      last = t;
+      box.style.setProperty('--ap-progress',String(Math.min(1,elapsed/duration)));
+      if (elapsed >= duration) {
+        if (current+1 < slides.length) show(current+1);
+        else finish();
+      } else frame = requestAnimationFrame(tick);
+    }
+    function setPause(value) {
+      paused = value;
+      // If paused during a reveal, let the current copy become fully legible.
+      if (value) box.removeAttribute('data-av-moving');
+      pause.textContent = value ? 'Resume' : 'Pause';
+      pause.setAttribute('aria-label',value ? 'Resume titles' : 'Pause titles');
+      updateClock();
+    }
+    function hide() {
+      stopClock(); showing = false;
+      box.hidden = true; deck.hidden = false;
+      o.scope.classList.remove('av-prelude-on');
+      scroller.scrollTop = 0;
+    }
+    function finish() {
+      if (!showing) return;
+      var wasFocused = box.contains(document.activeElement);
+      hide(); onFinish(wasFocused);
+    }
+    pause.addEventListener('click',function () { setPause(!paused); });
+    skip.addEventListener('click',finish);
+    return {
+      get running() { return showing; },
+      begin: function () {
+        if (showing) return;
+        showing = true;
+        deck.hidden = true; box.hidden = false;
+        o.scope.classList.add('av-prelude-on');
+        scroller.scrollTop = 0;
+        setPause(false); show(0);
+      },
+      cancel: function () { if (showing) hide(); },
+      sync: updateClock
+    };
+  }
   function create(o) {
     var v = o.video, label = o.edition, scope = o.scope;
     var languages = scope.querySelector('[data-intro-language-slot]');
@@ -34,6 +127,23 @@
     labelDuration(scope);
     var lang = 'hi', open = false, active = null, lastPosition = 0, lastRate = 1;
     var intent = false, failed = false, played = false, openCount = 0;
+    var titlesDone = false, needsGesture = false;
+    var startLabel = o.start.querySelector('span') || o.start.lastChild;
+    var prelude = createPrelude(o, function (fromControls) {
+      if (!open) return;
+      titlesDone = true;
+      labelStart();
+      if (fromControls) { o.start.hidden = false; o.start.focus({preventScroll:true}); }
+      requestPlay();
+    });
+    function labelStart() {
+      startLabel.textContent = prelude && !titlesDone && !active ? 'Start Intro' : 'Play video';
+    }
+    function startOrPlay() {
+      if (!open) return;
+      if (prelude && !titlesDone && !active) { prelude.begin(); return; }
+      v.focus({preventScroll:true}); requestPlay();
+    }
     var useWebM = !!(v.canPlayType('video/webm; codecs="vp9, opus"') || v.canPlayType('video/webm; codecs="vp09.00.40.08, opus"'));
     function status(text) {
       o.status.textContent = text;
@@ -60,7 +170,8 @@
       }
     }
     function requestPlay() {
-      if (!open) return;
+      if (!open || (prelude && prelude.running)) return;
+      needsGesture = false;
       if (!active || failed) {
         attach(useWebM ? 'webm' : 'mp4', true);
         return;
@@ -72,8 +183,9 @@
       if (p && p.catch) p.catch(function (e) {
         if (!open || active !== a || n !== openCount || e.name === 'AbortError' || v.error) return;
         intent = false;
-        o.start.hidden = false;
-        status(e.name === 'NotAllowedError' ? 'Tap Play video to continue with sound.' : 'Unable to play. Tap Play video to try again.');
+        needsGesture = e.name === 'NotAllowedError';
+        labelStart(); o.start.hidden = false;
+        status(needsGesture ? 'Tap Play video to continue with sound.' : 'Unable to play. Tap Play video to try again.');
       });
     }
     function attach(format, resume) {
@@ -109,7 +221,7 @@
       var t = Math.min(active.time,Math.max(0,v.duration-.06));
       if (Number.isFinite(t) && Math.abs(v.currentTime-t) > .12) v.currentTime = t;
       v.playbackRate = active.rate;
-      if (open) status('');
+      if (open && !needsGesture) status('');
     });
     v.addEventListener('error',function () {
       if (!active || !v.error || v.error.code === 1 || (v.currentSrc && v.currentSrc !== active.url)) return;
@@ -127,8 +239,9 @@
       }
     });
     v.addEventListener('play',function () {
-      if (!open) { v.pause(); return; }
-      intent = true;
+      if (!open || (prelude && prelude.running)) { v.pause(); return; }
+      intent = true; needsGesture = false;
+      if (document.activeElement === o.start) v.focus({preventScroll:true});
       o.start.hidden = true;
       played = true;
       if (active && active.ready) status('');
@@ -143,9 +256,10 @@
     var jumps = chapterBar.querySelectorAll('button');
     jumps.forEach(function (button) {
       button.addEventListener('click',function () {
-        if (!open) return;
+        if (!open || (prelude && prelude.running)) return;
         var t = Number(button.dataset.introSeek);
         if (!Number.isFinite(t) || t < 0.05) return;
+        titlesDone = true; labelStart();
         lastPosition = t;
         if (!active || failed) {
           attach(useWebM ? 'webm' : 'mp4',true);
@@ -159,10 +273,11 @@
         if (resume) requestPlay();
       });
     });
-    o.start.addEventListener('click',function () { v.focus({preventScroll:true}); requestPlay(); });
+    o.start.addEventListener('click',startOrPlay);
     // The video is never allowed to keep speaking behind another page.
-    window.addEventListener('pagehide',function () { v.pause(); intent = false; });
+    window.addEventListener('pagehide',function () { if (prelude) prelude.cancel(); v.pause(); intent = false; });
     document.addEventListener('visibilitychange',function () {
+      if (prelude && prelude.running) prelude.sync();
       if (document.hidden && open && !fullscreen()) { v.pause(); intent = false; }
     });
     return {
@@ -170,13 +285,14 @@
       open: function (playNow) {
         open = true;
         openCount++;
-        paint(); status('');
-        o.start.hidden = played && !failed;
-        if (playNow) requestPlay();
+        paint(); status(''); labelStart();
+        o.start.hidden = played && !failed && !needsGesture;
+        if (playNow) startOrPlay();
         else if (!active) v.controls = false;
       },
       close: function () {
         open = false;
+        if (prelude) prelude.cancel();
         intent = false;
         remember();
         v.pause();

@@ -1543,8 +1543,9 @@ if (!small && actId === "contact") {
   // Wrap focus without intercepting Tab inside the browser's video controls.
   $("#xc-last-edge", caseEl).addEventListener("focus", function () { introBtn.focus(); });
   $("#xc-first-edge", caseEl).addEventListener("focus", function () {
+    var beforeFilm = $(".av-prelude:not([hidden]) [data-av-skip]", caseEl);
     var jump = $(".av-film-chapters button:last-child", caseEl);
-    var last = introOpen ? (jump || (introStart.hidden ? introVideo : introStart)) : ($(".rg-end a",caseEl) || $("#xc-x",caseEl));
+    var last = introOpen ? (beforeFilm || jump || (introStart.hidden ? introVideo : introStart)) : ($(".rg-end a",caseEl) || $("#xc-x",caseEl));
     last.focus({ preventScroll: true });
   });
   function introFullscreen() { return player.fullscreen(); }
