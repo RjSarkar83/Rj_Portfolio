@@ -1,22 +1,13 @@
-/* ArtViSiON // Workshop entry. Four original plates, one continuous camera route. */
+/* ArtViSiON // Workshop entry. One matched move from pupil to aisle. */
 (function () {
   'use strict';
   var dir = 'media/artvision-workshop/';
-  var filenames = ['iris','car','cockpit','shop'];
   var motion = matchMedia('(prefers-reduced-motion: reduce)');
   var work = null, shots = [], images = null, run = null;
-  var duration = 3320;
-  var marks = [0,920,2310,duration];
-  // Pupil blackout → open door → driver POV → matched door jambs/workshop aisle.
-  var cuts = [
-    {at:0,end:932,origin:'50.2% 50%',inTime:125,out:100},
-    {at:850,end:1575,origin:'51.5% 49%',inTime:152,out:155},
-    {at:1455,end:2460,origin:'50% 39.8%',inTime:150,out:150},
-    {at:2310,end:duration,origin:'50% 51%',inTime:165,out:215}
-  ];
-  var words = [
-    ['01 / FOCUS','Look closer.'],['02 / TRANSIT','Take the seat.'],
-    ['02 / TRANSIT','Follow the light.'],['03 / ARRIVAL','Into the workshop.']
+  var duration = 2380;
+  var scenes = [
+    {name:'iris', start:0, end:1060, inTime:110, outTime:182, origin:'50.2% 50%', route:'Focus', cue:'01 / FOCUS', line:'Look closer.'},
+    {name:'shop', start:898, end:duration, inTime:235, outTime:110, origin:'50% 50%', route:'Workshop', cue:'02 / WORKSHOP', line:'Step inside.'}
   ];
   function capable() {
     var link = navigator.connection;
@@ -25,7 +16,7 @@
   }
   function prepared() {
     if (images) return images;
-    images = Promise.all(filenames.map(function (name) {
+    images = Promise.all(scenes.map(function (scene) {
       return new Promise(function (resolve,reject) {
         var im = new Image(); im.decoding = 'async';
         im.className = 'rw-plate'; im.alt = '';
@@ -33,7 +24,7 @@
           if (im.decode) im.decode().then(function () {resolve(im);},function () {resolve(im);});
           else resolve(im);
         };
-        im.onerror = reject; im.src = dir+name+'.webp';
+        im.onerror = reject; im.src = dir+scene.name+'.webp';
       });
     })).catch(function () {images = null; return null;});
     return images;
@@ -49,8 +40,8 @@
       '<button type="button" class="rw-close" aria-label="Close transition"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div></div>'+
       '<div class="rw-reticle" aria-hidden="true"><i></i><i></i><i></i><i></i></div>'+
       '<div class="rw-copy"><p class="rw-cue">WORKSHOP ENTRY</p><div class="rw-line" aria-hidden="true">Opening the gallery.</div><p class="rw-service"></p></div>'+
-      '<div class="rw-route" aria-hidden="true">'+['Focus','Transit','Arrival'].map(function (name,i) {
-        return '<div><span><i></i></span><small>0'+(i+1)+' <b>'+name+'</b></small></div>';
+      '<div class="rw-route" aria-hidden="true">'+scenes.map(function (scene,i) {
+        return '<div><span><i></i></span><small>0'+(i+1)+' <b>'+scene.route+'</b></small></div>';
       }).join('')+'</div>';
     document.body.appendChild(work);
     work.querySelector('.rw-skip').addEventListener('click',function () {settle(true);});
@@ -73,31 +64,28 @@
   function clamp(x) {return Math.max(0,Math.min(1,x));}
   function ease(x) {x=clamp(x); return x*x*(3-2*x);}
   function camera(i,t) {
-    if (i===0) return 'scale('+(1+0.082*t+10.6*Math.pow(t,4.4))+')';
-    if (i===1) return 'translate3d('+(-2.6*t)+'%, '+(1.6*t)+'%,0) scale('+(1+1.30*Math.pow(t,1.75))+')';
-    if (i===2) return 'scale('+(1+1.06*Math.pow(t,1.31))+')';
-    return 'scale('+(1.02+0.78*Math.pow(t,1.1))+')';
+    // Both cameras converge on the same point: the dark pupil resolves into the lit aisle.
+    var scale = i===0 ? 1+.11*t+12*Math.pow(t,4.7) : 1.01+.72*Math.pow(t,1.08);
+    return 'scale('+scale+')';
   }
   function frame(now) {
     var r = run;
     if (!r) return;
     if (motion.matches) {settle(true); return;}
-    var t = Math.max(0,now-r.start), beat = 0;
-    for (var i=0;i<cuts.length;i++) {
-      var c = cuts[i], p = clamp((t-c.at)/(c.end-c.at));
-      if (t >= c.at+40) beat=i;
-      var a = t<c.at || t>=c.end ? 0 : ease((t-c.at)/c.inTime)*ease((c.end-t)/c.out);
-      // At the windshield cut, hold the outgoing frame underneath the incoming one.
-      if (i===2 && t>=cuts[3].at && t<c.end) a=1;
-      var plate = shots[i];
-      if (a>0) plate.style.transform=camera(i,p);
-      plate.style.opacity=a;
-    }
+    var t = Math.max(0,now-r.start), beat = t>=scenes[1].start+45 ? 1 : 0;
+    scenes.forEach(function (scene,i) {
+      var p = clamp((t-scene.start)/(scene.end-scene.start));
+      var opacity = ease((t-scene.start)/scene.inTime)*ease((scene.end-t)/scene.outTime);
+      if (opacity>0) shots[i].style.transform=camera(i,p);
+      shots[i].style.opacity=opacity;
+      var next = scenes[i+1] ? scenes[i+1].start : duration;
+      r.rules[i].style.transform='scaleX('+clamp((t-scene.start)/(next-scene.start))+')';
+    });
     if (beat!==r.beat) {
-      r.beat=beat; work.dataset.shot=filenames[beat];
-      r.cue.textContent=words[beat][0]; r.line.textContent=words[beat][1];
+      var scene = scenes[beat];
+      r.beat=beat; work.dataset.shot=scene.name;
+      r.cue.textContent=scene.cue; r.line.textContent=scene.line;
     }
-    r.rules.forEach(function (bar,j) {bar.style.transform='scaleX('+clamp((t-marks[j])/(marks[j+1]-marks[j]))+')';});
     if (t>=duration) settle(true);
     else r.frame=requestAnimationFrame(frame);
   }
@@ -124,7 +112,7 @@
       shots = decoded;
       shots.forEach(function (el,i) {
         el.style.opacity = 0; el.style.transform = camera(i,0);
-        el.style.transformOrigin = cuts[i].origin; scene.appendChild(el);
+        el.style.transformOrigin = scenes[i].origin; scene.appendChild(el);
       });
       r.start = performance.now(); r.frame=requestAnimationFrame(frame);
     });
