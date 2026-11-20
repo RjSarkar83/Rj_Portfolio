@@ -2,13 +2,36 @@
 (function () {
   'use strict';
   var folder = 'media/artvision-working-line/';
+  var revision = '?v=' + encodeURIComponent(document.documentElement.dataset.rjRelease);
+  var length = '03:26';
   var films = {
     hi: { name: 'Hindi', edition: 'Bharat edition', file: 'ArtViSiON_Intro_Hindi_Bharat' },
     bn: { name: 'Bengali', edition: 'Kolkata edition', file: 'ArtViSiON_Intro_Bengali_Kolkata' },
     en: { name: 'English', edition: 'International edition', file: 'ArtViSiON_Intro_English_International' }
   };
+  var chapters = [
+    { title:'Footing', clock:'1:45', seconds:104.833333 },
+    { title:'LED sizing', clock:'2:13', seconds:132.833333 }
+  ];
+  function labelDuration(root) {
+    root.querySelectorAll('[data-intro-duration]').forEach(function (node) { node.textContent = length; });
+    root.querySelectorAll('[data-intro-cover]').forEach(function (node) {
+      var parts = length.split(':');
+      node.setAttribute('aria-label','Watch the ArtViSiON Intro, The Working Line, ' + Number(parts[0]) + ' minutes ' + Number(parts[1]) + ' seconds');
+    });
+  }
   function create(o) {
-    var v = o.video, label = o.edition, buttons = Array.prototype.slice.call(o.choices);
+    var v = o.video, label = o.edition, scope = o.scope;
+    var languages = scope.querySelector('[data-intro-language-slot]');
+    var chapterBar = scope.querySelector('[data-intro-chapter-slot]');
+    languages.innerHTML = Object.keys(films).map(function (id) {
+      return '<button type="button" data-intro-lang="'+id+'" aria-pressed="'+(id==='hi')+'">'+films[id].name+'</button>';
+    }).join('');
+    chapterBar.innerHTML = chapters.map(function (c) {
+      return '<button type="button" data-intro-seek="'+c.seconds+'">'+c.title+' <span>'+c.clock+'</span></button>';
+    }).join('');
+    var buttons = languages.querySelectorAll('button');
+    labelDuration(scope);
     var lang = 'hi', open = false, active = null, lastPosition = 0, lastRate = 1;
     var intent = false, failed = false, played = false, openCount = 0;
     var useWebM = !!(v.canPlayType('video/webm; codecs="vp9, opus"') || v.canPlayType('video/webm; codecs="vp09.00.40.08, opus"'));
@@ -57,7 +80,7 @@
       v.pause();
       failed = false;
       var ext = format === 'webm' ? '.vp9.webm' : '.mp4';
-      var url = new URL(folder + films[lang].file + ext, document.baseURI).href;
+      var url = new URL(folder + films[lang].file + ext + revision, document.baseURI).href;
       active = { url: url, format: format, time: lastPosition, rate: lastRate, ready: false };
       intent = resume;
       v.preload = resume ? 'auto' : 'metadata';
@@ -117,6 +140,25 @@
     buttons.forEach(function (b) {
       b.addEventListener('click',function () { change(b.dataset.introLang); });
     });
+    var jumps = chapterBar.querySelectorAll('button');
+    jumps.forEach(function (button) {
+      button.addEventListener('click',function () {
+        if (!open) return;
+        var t = Number(button.dataset.introSeek);
+        if (!Number.isFinite(t) || t < 0.05) return;
+        lastPosition = t;
+        if (!active || failed) {
+          attach(useWebM ? 'webm' : 'mp4',true);
+          return;
+        }
+        var resume = !played || v.ended;
+        if (Number.isFinite(v.duration)) t = Math.min(t,Math.max(0,v.duration-.1));
+        active.time = t;
+        // Keep chapter selections even while metadata or format fallback is in flight.
+        try { v.currentTime = t; } catch (_) {}
+        if (resume) requestPlay();
+      });
+    });
     o.start.addEventListener('click',function () { v.focus({preventScroll:true}); requestPlay(); });
     // The video is never allowed to keep speaking behind another page.
     window.addEventListener('pagehide',function () { v.pause(); intent = false; });
@@ -131,7 +173,6 @@
         paint(); status('');
         o.start.hidden = played && !failed;
         if (playNow) requestPlay();
-        else if (o.prime && (!active || failed)) attach(useWebM ? 'webm' : 'mp4',false);
         else if (!active) v.controls = false;
       },
       close: function () {
@@ -142,5 +183,5 @@
       }
     };
   }
-  window.RJIntro = { create: create };
+  window.RJIntro = { create:create, labelDuration:labelDuration };
 })();

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-rj-release="av-final-1">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -14,12 +14,13 @@
 <style>html{background:#0e0f11;color:#f9f6f0}html[data-rj-layout="desktop"]{background:#000}</style>
 <script>
 (function () {
-  var portrait = '(max-width: 780px)';
-  var shortTouch = '(max-width: 1024px) and (max-height: 540px) and (pointer: coarse)';
+  var root = document.documentElement;
+  var narrow = '(max-width:780px)';
+  var touchFirst = '(max-width:1440px) and (pointer:coarse)';
   var request = new URLSearchParams(location.search).get('view');
-  var mobile = request === 'mobile' || (request !== 'desktop' && matchMedia(portrait + ', ' + shortTouch).matches);
+  var mobile = request === 'mobile' || (request !== 'desktop' && matchMedia(narrow + ', ' + touchFirst).matches);
   // Keep the same interface through phone rotation and Safari toolbar resizing.
-  document.documentElement.dataset.rjLayout = mobile ? 'mobile' : 'desktop';
+  root.dataset.rjLayout = mobile ? 'mobile' : 'desktop';
   document.querySelector('meta[name="theme-color"]').content = mobile ? '#0e0f11' : '#000000';
   if (!mobile) {
     [['fonts/Montserrat-var.woff2','font'],['fonts/Playfair-var.woff2','font'],['media/frames/x0_back.webp','image']].forEach(function (v) {
@@ -28,7 +29,10 @@
       document.head.appendChild(l);
     });
   }
-  window.rjStyles = Promise.all((mobile ? ['mobile.css?v=mobile-webm-1'] : ['style.css', 'enhance.css?v=mobile-webm-1']).map(function (url) {
+  var revision = '?v=' + root.dataset.rjRelease;
+  var styles = mobile ? ['mobile.css' + revision] : ['style.css','enhance.css' + revision];
+  styles.push('portfolio-ui.css' + revision);
+  window.rjStyles = Promise.all(styles.map(function (url) {
     return new Promise(function (finish) {
       var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = url;
       l.onload = finish; l.onerror = function () { console.error('Stylesheet unavailable:',url); finish(); }; document.head.appendChild(l);
@@ -160,6 +164,7 @@
   <div class="whead">
     <div class="eyebrow">02 — What I do</div>
     <h2 id="wTitle"></h2>
+    <p class="rg-work-hint">Choose a pillar to enter the workshop</p>
   </div>
   <div class="cards" id="wCards"></div>
 </div></section>
@@ -204,10 +209,8 @@
   <symbol id="mi-back" viewBox="0 0 24 24"><path d="m14.5 5.5-7 6.5 7 6.5"/></symbol>
   <symbol id="mi-play" viewBox="0 0 24 24"><path d="M8 4.9a.8.8 0 0 0-1.2.7v12.8a.8.8 0 0 0 1.2.7l10.1-6.4a.8.8 0 0 0 0-1.4z" fill="currentColor" stroke="none"/></symbol>
   <symbol id="mi-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
-  <symbol id="mi-down" viewBox="0 0 24 24"><path d="m6.5 9 5.5 6 5.5-6"/></symbol>
   <symbol id="mi-download" viewBox="0 0 24 24"><path d="M12 3v12m-4-4 4 4 4-4M5 16v4h14v-4"/></symbol>
   <symbol id="mi-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4 7 8 6 8-6"/></symbol>
-  <symbol id="mi-expand" viewBox="0 0 24 24"><path d="M8 4H4v4m12-4h4v4M4 16v4h4m12-4v4h-4"/></symbol>
 </svg>
 <a class="m-skip" href="#m-main">Skip to content</a>
 <header class="m-header">
@@ -231,31 +234,22 @@
         <button class="m-btn m-secondary" type="button" data-m-intro aria-haspopup="dialog" aria-controls="m-film"><svg aria-hidden="true"><use href="#mi-play"/></svg> Watch Intro</button>
       </div>
     </div>
-    <button class="m-cover" type="button" data-m-intro aria-label="Watch the ArtViSiON Intro, The Working Line, 2 minutes 17 seconds" aria-haspopup="dialog" aria-controls="m-film">
+    <button class="m-cover" type="button" data-m-intro aria-label="Watch the ArtViSiON Intro" data-intro-cover aria-haspopup="dialog" aria-controls="m-film">
       <img src="media/artvision-mobile/working-line-cover.webp" width="1120" height="674" alt="" fetchpriority="high" decoding="async">
-      <span class="m-cover-copy"><span class="m-cover-label"><i></i> STUDIO FILM</span><strong>The<br>Working Line</strong><span class="m-cover-time"><i><svg aria-hidden="true"><use href="#mi-play"/></svg></i> 02:17</span></span>
+      <span class="m-cover-copy"><span class="m-cover-label"><i></i> STUDIO FILM</span><strong>The<br>Working Line</strong><span class="m-cover-time"><i><svg aria-hidden="true"><use href="#mi-play"/></svg></i> <span data-intro-duration></span></span></span>
     </button>
     <div class="m-section-head m-home-work-head"><div><p class="m-kicker">01 <span class="m-slash">/</span> Portfolio</p><h2>Selected work</h2></div><a class="m-text-link" href="#work">View all <svg aria-hidden="true"><use href="#mi-right"/></svg></a></div>
     <div id="m-featured"></div>
     <div class="m-home-foot"><p>A brand should work on a sheet, on a wall and on site.</p><a class="m-text-link" href="#about">About the practice <svg aria-hidden="true"><use href="#mi-right"/></svg></a></div>
   </section>
   <section data-m-page="work" aria-labelledby="m-work-title" hidden>
-    <div class="m-page-lead"><p class="m-kicker"><span class="m-signal"></span> 01 <span class="m-slash">/</span> Portfolio</p><h1 id="m-work-title" class="m-display m-sub-display" tabindex="-1">Selected work<span class="m-red">.</span></h1><p>Five disciplines, from concept to installation. Open a case to see the process, not just the result.</p></div>
+    <div class="m-page-lead"><p class="m-kicker"><span class="m-signal"></span> 02 <span class="m-slash">/</span> What I do</p><h1 id="m-work-title" class="m-display m-sub-display" tabindex="-1">Five service pillars<span class="m-red">.</span></h1><p>Choose a discipline to enter the workshop and see how the work goes from first measurements to final installation.</p></div>
     <div class="m-section-rule"><span>THE CASE STUDIES</span><span>01–05</span></div>
     <div id="m-work-cards" class="m-cards"></div>
   </section>
   <section data-m-page="case" aria-labelledby="m-case-title" hidden>
-    <div id="m-case-intro"></div>
-    <section class="m-case-boards" aria-labelledby="m-board-title">
-      <div class="m-board-head"><div><p class="m-kicker">Project process</p><h2 id="m-board-title" tabindex="-1">Process boards</h2></div><span class="m-board-index" id="m-board-index" role="status" aria-atomic="true"></span></div>
-      <label class="m-board-picker" for="m-board-select"><span class="m-visually-hidden">Jump to a process board</span><select id="m-board-select"></select><svg aria-hidden="true"><use href="#mi-down"/></svg></label>
-      <div id="m-board-content"></div>
-      <div class="m-board-nav" aria-label="Board navigation">
-        <button type="button" id="m-board-prev" class="m-btn m-secondary"><svg aria-hidden="true"><use href="#mi-back"/></svg> Previous</button>
-        <button type="button" id="m-board-next" class="m-btn m-primary">Next board <svg aria-hidden="true"><use href="#mi-right"/></svg></button>
-      </div>
-    </section>
-    <nav class="m-case-links" aria-label="Other work"><a class="m-btn m-secondary" href="#work" data-case-back>All work</a><a class="m-btn m-secondary" id="m-next-case" href="#work">Next case <svg aria-hidden="true"><use href="#mi-right"/></svg></a></nav>
+    <div id="m-workshop-gallery" class="rg-mobile"></div>
+    <nav class="m-case-links" aria-label="Return to work"><a class="m-btn m-secondary" href="#work" data-case-back>All five services</a></nav>
   </section>
   <section data-m-page="about" aria-labelledby="m-about-title" hidden>
     <div class="m-page-lead"><p class="m-kicker"><span class="m-signal"></span> 02 <span class="m-slash">/</span> The practice</p><h1 id="m-about-title" class="m-display m-about-title" tabindex="-1">About Ranjan<span class="m-red">.</span></h1><p id="m-about-strap" class="m-quote"></p><p id="m-about-bio"></p></div>
@@ -283,13 +277,14 @@
 </nav>
 <dialog id="m-film" class="m-film" aria-modal="true" aria-labelledby="m-film-title" aria-describedby="m-film-note">
   <div class="m-film-handle" aria-hidden="true"></div>
-  <div class="m-film-header"><div><p class="m-kicker"><span class="m-signal"></span> Studio film <span class="m-slash">/</span> 02:17</p><h2 id="m-film-title">ArtViSiON Introduction</h2></div><button type="button" class="m-circle m-film-x" aria-label="Close Intro" autofocus><svg aria-hidden="true"><use href="#mi-close"/></svg></button></div>
+  <div class="m-film-header"><div><p class="m-kicker"><span class="m-signal"></span> Studio film <span class="m-slash">/</span> <span data-intro-duration></span></p><h2 id="m-film-title">ArtViSiON Introduction</h2></div><button type="button" class="m-circle m-film-x" aria-label="Close Intro" autofocus><svg aria-hidden="true"><use href="#mi-close"/></svg></button></div>
   <div class="m-film-body">
     <div class="m-film-player"><video id="m-film-video" playsinline webkit-playsinline preload="none" tabindex="0" width="640" height="360" aria-label="ArtViSiON Introduction, Hindi edition">Your browser does not support embedded video.</video>
       <button type="button" class="m-film-play" id="m-film-play"><svg aria-hidden="true"><use href="#mi-play"/></svg><span>Play video</span></button>
     </div>
     <div class="m-film-options"><p class="m-film-edition" id="m-film-edition">Bharat edition</p>
-      <div class="m-film-language" role="group" aria-label="Film language"><button type="button" data-intro-lang="hi" aria-pressed="true">Hindi</button><button type="button" data-intro-lang="bn" aria-pressed="false">Bengali</button><button type="button" data-intro-lang="en" aria-pressed="false">English</button></div>
+      <div class="m-film-language" role="group" aria-label="Film language" data-intro-language-slot></div>
+      <div class="av-film-chapters" role="group" aria-label="Jump to a technical chapter" data-intro-chapter-slot></div>
       <p class="m-film-note" id="m-film-note">Language changes the picture and the narration.</p>
       <p id="m-film-status" class="m-film-status" role="status" hidden></p>
       <a class="m-btn m-secondary m-film-explore" href="#work" id="m-film-explore">Explore work <svg aria-hidden="true"><use href="#mi-right"/></svg></a>
@@ -301,8 +296,10 @@
 
 <noscript><main style="margin:8vh auto;max-width:42rem;padding:2rem;font:16px/1.6 system-ui"><h1>Ranjan Sarkar</h1><p>ArtViSiON Production Design · Indore</p><p>Enable JavaScript to browse the films and case studies, or <a style="color:inherit" href="mailto:rjsarkar@icloud.com">get in touch by email</a>.</p><p><a style="color:inherit" href="media/resume.pdf">Download résumé</a></p></main></noscript>
 <script defer src="config.js"></script>
-<script defer src="intro-player.js?v=mobile-webm-1"></script>
-<script defer src="portfolio-cases.js?v=mobile-webm-1"></script>
-<script defer src="portfolio-boot.js?v=mobile-webm-1"></script>
+<script defer src="intro-player.js?v=av-final-1"></script>
+<script defer src="portfolio-cases.js?v=av-final-1"></script>
+<script defer src="workshop-gallery.js?v=av-final-1"></script>
+<script defer src="workshop-entry.js?v=av-final-1"></script>
+<script defer src="portfolio-boot.js?v=av-final-1"></script>
 </body>
 </html>

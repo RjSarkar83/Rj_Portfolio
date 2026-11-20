@@ -1,7 +1,9 @@
 /* Layout dispatcher. The phone never runs the desktop loader or animation loop. */
 (function () {
   'use strict';
-  var mobile = document.documentElement.dataset.rjLayout === 'mobile';
+  var root = document.documentElement;
+  var mobile = root.dataset.rjLayout === 'mobile';
+  var revision = '?v=' + root.dataset.rjRelease;
   var mount = document.getElementById('rj-' + (mobile ? 'mobile' : 'desktop') + '-template');
   function script(url) {
     return new Promise(function (resolve, reject) {
@@ -10,9 +12,11 @@
     });
   }
   window.rjStyles.then(function () {
+    if (!window.CONFIG || !window.RJIntro || !window.RJCases || !window.RJGallery || !window.RJWorkshop) throw new Error('A required portfolio script is missing');
     mount.parentNode.replaceChild(mount.content, mount);
-    if (mobile) return script('mobile.js?v=mobile-webm-1');
-    return script('app.js').then(function () { return script('enhance.js?v=mobile-webm-1'); }).then(function () {
+    window.RJIntro.labelDuration(document);
+    if (mobile) return script('mobile.js' + revision);
+    return script('app.js').then(function () { return script('enhance.js' + revision); }).then(function () {
       var caseLink = location.hash.match(/^#work\/([a-e])$/i);
       if (caseLink && window.X) window.X.openCase(caseLink[1].toUpperCase().charCodeAt(0) - 65, document.getElementById('av-watch-intro'));
     });

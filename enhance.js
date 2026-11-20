@@ -1225,11 +1225,13 @@ if (!small && actId === "contact") {
   window.addEventListener("keydown", function (e) {
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     var k = e.key;
+    if (window.RJWorkshop.active() || $(".rg-zoom[open]")) return;
     if (caseOpen) {
       if (e.defaultPrevented || (introOpen && introFullscreen())) return;
       if (k === "Escape") { e.preventDefault(); closeCase(); }
-      else if (!introOpen && (k === "ArrowRight" || k === "PageDown")) { e.preventDefault(); goStage(caseK + 1, 1); }
-      else if (!introOpen && (k === "ArrowLeft" || k === "PageUp")) { e.preventDefault(); goStage(caseK - 1, -1); }
+      else if (!introOpen && !e.target.closest("select") && (k === "ArrowRight" || k === "ArrowLeft")) {
+        e.preventDefault(); gallery.step(k === "ArrowRight" ? 1 : -1);
+      }
       return;
     }
     if (k === "1") { setMode("shop"); return; }
@@ -1470,13 +1472,8 @@ if (!small && actId === "contact") {
     }, { passive: true });
   });
 
-  /* ════════════════ 11c · WAVE 3 — THE CASE DECKS ═══════════════════
-     The point of a portfolio is the process. Click any service panel
-     and it opens as a presentation board: recce → concept → working
-     drawing → production design → production → execution → handover.
-     Photos are site documentation; drawings draw themselves; the
-     schedules are real cut lists. Arrows / wheel / swipe to flip.    */
-  var DW = window.RJCases.drawings, CASES = window.RJCases.cases;
+  /* 11c · The Workshop: cinematic entry and shared service gallery. */
+  var CASES = window.RJCases.cases;
 
   /* deck DOM, built once */
   var caseEl = el("div"); caseEl.id = "x-case";
@@ -1489,29 +1486,17 @@ if (!small && actId === "contact") {
     '<div class="xc-switch">' +
       '<button type="button" class="xc-tab xc-intro-tab" id="xc-intro-btn" aria-expanded="false" aria-controls="xc-intro">' +
         '<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M5 2.6 13 8 5 13.4Z" fill="currentColor"/></svg>Intro Video</button>' +
-      '<div class="xc-tabs" id="xc-tabs" role="tablist" aria-label="Switch service"></div></div>' +
+      '<div class="xc-tabs" id="xc-tabs" role="group" aria-label="Switch service"></div></div>' +
     '<div class="xc-prog" id="xc-prog"></div>' +
     '<button type="button" class="xc-x" id="xc-x">Close ✕<kbd>esc</kbd></button></div>' +
-    '<div class="xc-body"><nav class="xc-rail" id="xc-rail" aria-label="Process stages"></nav>' +
-    '<figure class="xc-stage">' +
-      '<button type="button" class="xc-arrow prev" id="xc-prev" aria-label="Previous board">‹</button>' +
-      '<button type="button" class="xc-arrow next" id="xc-next" aria-label="Next board">›</button>' +
-      '<div class="xc-visual" id="xc-vis" title="Click right/left to surf boards"></div>' +
-      '<figcaption class="xc-cap"><div class="xc-cap-row"><div class="xc-cn" id="xc-cn"></div>' +
-      '<button type="button" class="xc-next-svc" id="xc-next-svc"></button></div>' +
-      '<div class="xc-dots" id="xc-dots"></div>' +
-      '<p id="xc-cap"></p><div class="xc-meta" id="xc-meta"></div></figcaption></figure></div>' +
-    '<div class="xc-foot">Click visual, use ‹ › arrows, swipe or scroll to surf boards · switch services A–E anytime at the top</div>' +
+    '<div class="xc-gallery" id="xc-gallery-scroll"><article class="rg-desktop" id="xc-gallery"></article></div>' +
     '<section class="xc-intro" id="xc-intro" aria-labelledby="xc-intro-title" hidden>' +
       '<div class="xc-intro-inner">' +
-        '<div class="xc-intro-head"><div class="xc-intro-titles"><p class="xc-intro-kicker"><span id="xc-edition">Bharat edition</span> · 02:17</p>' +
+        '<div class="xc-intro-head"><div class="xc-intro-titles"><p class="xc-intro-kicker"><span id="xc-edition">Bharat edition</span> · <span data-intro-duration></span></p>' +
           '<h2 id="xc-intro-title">ArtViSiON Introduction</h2></div>' +
           '<div class="xc-intro-langs" role="group" aria-labelledby="xc-audio-label">' +
             '<span class="xc-intro-lang-label" id="xc-audio-label">Film language</span>' +
-            '<div class="xc-intro-lang-buttons">' +
-              '<button type="button" data-intro-lang="hi" aria-pressed="true">Hindi</button>' +
-              '<button type="button" data-intro-lang="bn" aria-pressed="false">Bengali</button>' +
-              '<button type="button" data-intro-lang="en" aria-pressed="false">English</button>' +
+            '<div class="xc-intro-lang-buttons" data-intro-language-slot>' +
             '</div></div></div>' +
         '<div class="xc-intro-screen">' +
           '<video id="xc-intro-video" controls playsinline preload="none" tabindex="0" aria-label="ArtViSiON Introduction, Hindi edition">' +
@@ -1521,11 +1506,12 @@ if (!small && actId === "contact") {
         '</div>' +
         '<p id="xc-intro-status" role="status" hidden></p>' +
         '<p class="xc-intro-note">Language changes both the picture and narration. Use fullscreen for a larger view.</p>' +
+        '<div class="av-film-chapters" role="group" aria-label="Jump to a technical chapter" data-intro-chapter-slot></div>' +
       '</div></section>' +
     '<span class="xc-focus-edge" id="xc-last-edge" tabindex="0"></span>';
   body.appendChild(caseEl);
 
-  var caseOpen = false, caseI = -1, caseK = 0, caseBusy = 0;
+  var caseOpen = false, caseI = -1;
   var caseOpener = null, caseBackground = [];
   var introOpen = false;
   var watchIntro = $("#av-watch-intro"), introBtn = $("#xc-intro-btn", caseEl);
@@ -1533,94 +1519,14 @@ if (!small && actId === "contact") {
   var introStart = $("#xc-intro-start", caseEl);
   var player = window.RJIntro.create({
     video: introVideo, start: introStart, status: $("#xc-intro-status", caseEl),
-    edition: $("#xc-edition", caseEl), choices: $$("[data-intro-lang]", caseEl), scope: caseEl, prime: true
+    edition: $("#xc-edition", caseEl), scope: caseEl
   });
-  var xcVis = $("#xc-vis", caseEl), xcRail = $("#xc-rail", caseEl), xcTabs = $("#xc-tabs", caseEl);
+  var xcTabs = $("#xc-tabs", caseEl), galleryScroll = $("#xc-gallery-scroll", caseEl);
+  var gallery = window.RJGallery.create($("#xc-gallery",caseEl),{heading:'xc-workshop-title',nextCase:function (i) {openCase(i);}});
   xcTabs.innerHTML = CASES.map(function (c, idx) {
-    return '<button type="button" class="xc-tab" data-ci="' + idx + '">' + c.key + ' · ' + c.title + '</button>';
+    return '<button type="button" class="xc-tab" aria-pressed="false" data-ci="' + idx + '">' + c.key + ' · ' + c.title + '</button>';
   }).join("");
 
-  function sheetHTML(st) {
-    return '<div class="xc-sh"><div class="xc-sheet"><div class="xc-sheet-h"><span>' +
-      (st.n || "").toUpperCase() + '</span><span>' + (st.doc || "ISSUED FOR PRODUCTION") + "</span></div>" +
-      "<table><thead><tr>" +
-      st.head.map(function (h) { return "<th>" + h + "</th>"; }).join("") +
-      "</tr></thead><tbody>" +
-      st.rows.map(function (r, i) {
-        return '<tr style="transition-delay:' + (120 + i * 70) + 'ms">' +
-          r.map(function (c, j) { return (j ? "<td>" : '<td class="k">') + c + "</td>"; }).join("") +
-          "</tr>";
-      }).join("") + "</tbody></table></div></div>";
-  }
-  function visualHTML(st) {
-    if (st.kind === "photo")
-      return '<div class="xc-ph"><img src="' + st.img + '" alt="' + st.n + ' — ' + (st.tag || "documentation") + '" decoding="async">' +
-        '<span class="xc-tag">' + (st.tag || "") + "</span>" +
-        '<span class="xc-crop"></span></div>';
-    if (st.kind === "draw") return '<div class="xc-dw">' + DW[st.draw]() + "</div>";
-    return sheetHTML(st);
-  }
-  function renderStage(dir) {
-    var c = CASES[caseI], st = c.stages[caseK], totalS = c.stages.length;
-    $("#xc-prog", caseEl).textContent = "STAGE " + ("0" + (caseK + 1)).slice(-2) +
-      " / " + ("0" + totalS).slice(-2);
-    $("#xc-cn", caseEl).textContent = ("0" + (caseK + 1)).slice(-2) + " · " + st.n.toUpperCase();
-    $("#xc-cap", caseEl).textContent = st.cap;
-    $("#xc-meta", caseEl).innerHTML = (st.meta || []).map(function (m) {
-      return "<span>" + m + "</span>"; }).join("");
-    $$("#xc-rail button", caseEl).forEach(function (b, i) {
-      b.classList.toggle("on", i === caseK);
-      b.classList.toggle("done", i < caseK);
-      if (i === caseK && b.scrollIntoView) b.scrollIntoView({ block: "nearest", inline: "nearest" });
-    });
-    $$("#xc-tabs .xc-tab", caseEl).forEach(function (t, i) {
-      t.classList.toggle("on", i === caseI);
-    });
-    var dotsEl = $("#xc-dots", caseEl);
-    dotsEl.innerHTML = c.stages.map(function (_, i) {
-      return '<button type="button" class="xc-dot ' + (i === caseK ? "on" : i < caseK ? "done" : "") + '" data-k="' + i + '" aria-label="Stage ' + (i + 1) + '"></button>';
-    }).join("");
-    var nextSvc = CASES[(caseI + 1) % CASES.length];
-    var nsBtn = $("#xc-next-svc", caseEl);
-    nsBtn.textContent = "Next Service: " + nextSvc.key + " · " + nextSvc.title + " →";
-    $("#xc-prev", caseEl).disabled = (caseK === 0 && caseI === 0);
-    $("#xc-next", caseEl).disabled = false;
-
-    xcVis.className = "xc-visual " + (dir > 0 ? "go-r" : dir < 0 ? "go-l" : "go-r");
-    xcVis.innerHTML = visualHTML(st);
-    $$(".p, .d line", xcVis).forEach(function (n) { n.setAttribute("pathLength", "1"); });
-    requestAnimationFrame(function () {
-      requestAnimationFrame(function () {
-        xcVis.className = "xc-visual in " + (dir > 0 ? "go-r" : "go-l");
-        var svg = $(".xd", xcVis);
-        if (svg) svg.classList.add("live");
-      });
-    });
-  }
-  function goStage(k, dir) {
-    var n = CASES[caseI].stages.length;
-    if (performance.now() - caseBusy < 160) return;
-    if (k >= n) {
-      // Seamless surf into next service when going past last board!
-      caseBusy = performance.now();
-      openCase((caseI + 1) % CASES.length);
-      return;
-    }
-    if (k < 0) {
-      if (caseI > 0) {
-        caseBusy = performance.now();
-        var prevIdx = caseI - 1;
-        openCase(prevIdx);
-        caseK = CASES[prevIdx].stages.length - 1;
-        renderStage(-1);
-      }
-      return;
-    }
-    if (k === caseK) return;
-    caseBusy = performance.now(); caseK = k;
-    SND.tick();
-    renderStage(dir == null ? 1 : dir);
-  }
   function openCaseShell(trigger) {
     if (caseOpen) return;
     caseOpen = true;
@@ -1637,8 +1543,8 @@ if (!small && actId === "contact") {
   // Wrap focus without intercepting Tab inside the browser's video controls.
   $("#xc-last-edge", caseEl).addEventListener("focus", function () { introBtn.focus(); });
   $("#xc-first-edge", caseEl).addEventListener("focus", function () {
-    var dots = $$(".xc-dot", caseEl);
-    var last = introOpen ? (introStart.hidden ? introVideo : introStart) : (dots[dots.length - 1] || $("#xc-x", caseEl));
+    var jump = $(".av-film-chapters button:last-child", caseEl);
+    var last = introOpen ? (jump || (introStart.hidden ? introVideo : introStart)) : ($(".rg-end a",caseEl) || $("#xc-x",caseEl));
     last.focus({ preventScroll: true });
   });
   function introFullscreen() { return player.fullscreen(); }
@@ -1652,12 +1558,13 @@ if (!small && actId === "contact") {
     if (cin.on) setCinema(false);
     openCaseShell(trigger || (document.activeElement === body ? watchIntro : document.activeElement));
     introOpen = true;
+    caseEl.setAttribute("aria-labelledby","xc-t");
     SND.setQuiet(true);
     caseEl.classList.add("intro-on");
     introPanel.hidden = false;
     introBtn.setAttribute("aria-expanded", "true");
     introBtn.classList.add("on");
-    $$(".xc-tab", xcTabs).forEach(function (tab) { tab.classList.remove("on"); });
+    $$(".xc-tab", xcTabs).forEach(function (tab) { tab.classList.remove("on"); tab.setAttribute("aria-pressed","false"); });
     $("#xc-k", caseEl).textContent = "AV";
     $("#xc-t", caseEl).textContent = "Intro Video";
     player.open(playNow);
@@ -1678,7 +1585,7 @@ if (!small && actId === "contact") {
     watchIntro.addEventListener("click", function () { showIntro(watchIntro, true); });
     watchIntro.hidden = false;
     function timedIntro() {
-      if (introOffered || caseOpen || cin.on || replay.on) return;
+      if (introOffered || caseOpen || cin.on || replay.on || window.RJWorkshop.active()) return;
       if (document.hidden) {
         document.addEventListener("visibilitychange", timedIntro, { once: true });
         return;
@@ -1691,27 +1598,32 @@ if (!small && actId === "contact") {
     setTimeout(timedIntro, Math.max(0, 10000 - performance.now()));
   }
 
-  function openCase(i, trigger) {
-    var keepBoard = introOpen && i === caseI;
-    hideIntro();
-    caseI = i;
-    if (!keepBoard) caseK = 0;
-    var c = CASES[i];
+  function openCase(i, trigger, reveal) {
+    var c = CASES[i]; if (!c) return;
+    var board = introOpen && i === caseI ? gallery.index() : 0;
+    hideIntro(); caseI = i; introOffered = true;
+    caseEl.setAttribute("aria-labelledby","xc-workshop-title");
     $("#xc-k", caseEl).textContent = c.key;
-    $("#xc-t", caseEl).textContent = c.title + " · " + c.tech + " — " + c.client;
-    xcRail.innerHTML = c.stages.map(function (st, k) {
-      return '<button type="button" data-k="' + k + '"><i></i>' +
-        ("<span>" + ("0" + (k + 1)).slice(-2) + " " + st.n + "</span></button>");
-    }).join("");
+    $("#xc-t", caseEl).textContent = "The Workshop";
+    $("#xc-prog", caseEl).textContent = c.boards.length + " BOARDS";
+    $$(".xc-tab",xcTabs).forEach(function (t,idx) {t.classList.toggle("on",i===idx); t.setAttribute("aria-pressed",String(i===idx));});
     if (cin.on) setCinema(false);
+    caseEl.classList.toggle("rg-entry-cut",!!reveal);
     openCaseShell(trigger);
-    SND.peel();
-    renderStage(1);
-    $("#xc-x", caseEl).focus({ preventScroll: true });
+    gallery.load(i,board,reveal); galleryScroll.scrollTop = 0;
+    SND.peel(); gallery.focus();
+  }
+  function enterCase(i,trigger) {
+    if (caseOpen || window.RJWorkshop.active() || !CASES[i]) return;
+    stopReplay(false);
+    if (cin.on) setCinema(false);
+    window.RJGallery.warm(i);
+    window.RJWorkshop.play(CASES[i],trigger,function (reveal) {openCase(i,trigger,reveal);});
   }
   function closeCase() {
     if (!caseOpen) return;
     caseOpen = false;
+    gallery.closeDetail();
     hideIntro();
     caseEl.inert = true;
     caseEl.classList.remove("on");
@@ -1728,57 +1640,34 @@ if (!small && actId === "contact") {
     var ci = +b.dataset.ci;
     if (introOpen || ci !== caseI) openCase(ci);
   });
-  xcRail.addEventListener("click", function (e) {
-    var b = e.target.closest("button"); if (!b) return;
-    goStage(+b.dataset.k, +b.dataset.k > caseK ? 1 : -1);
-  });
-  $("#xc-dots", caseEl).addEventListener("click", function (e) {
-    var b = e.target.closest("button"); if (!b) return;
-    goStage(+b.dataset.k, +b.dataset.k > caseK ? 1 : -1);
-  });
-  $("#xc-prev", caseEl).addEventListener("click", function () { goStage(caseK - 1, -1); });
-  $("#xc-next", caseEl).addEventListener("click", function () { goStage(caseK + 1, 1); });
-  $("#xc-next-svc", caseEl).addEventListener("click", function () { openCase((caseI + 1) % CASES.length); });
   $("#xc-x", caseEl).addEventListener("click", closeCase);
-  caseEl.addEventListener("wheel", function (e) {
-    if (introOpen || e.target.closest(".xc-switch")) return;
-    e.preventDefault();
-    if (performance.now() - caseBusy < 190) return;
-    goStage(caseK + (e.deltaY > 0 ? 1 : -1), e.deltaY > 0 ? 1 : -1);
-  }, { passive: false });
-  var swX = null, swY = null;
-  caseEl.addEventListener("pointerdown", function (e) {
-    swX = introOpen || e.target.closest(".xc-switch") ? null : e.clientX;
-    swY = e.clientY;
-  });
-  caseEl.addEventListener("pointerup", function (e) {
-    if (introOpen || swX == null) return;
-    var dx = e.clientX - swX, dy = e.clientY - (swY || e.clientY);
-    swX = null; swY = null;
-    if (Math.abs(dx) > 44 && Math.abs(dx) > Math.abs(dy) * 1.35) {
-      goStage(caseK + (dx < 0 ? 1 : -1), dx < 0 ? 1 : -1);
-    } else if (Math.abs(dx) < 12 && Math.abs(dy) < 12 && e.target.closest("#xc-vis") && !e.target.closest("button")) {
-      var rect = xcVis.getBoundingClientRect();
-      var goNext = (e.clientX - rect.left) >= rect.width * 0.35;
-      goStage(caseK + (goNext ? 1 : -1), goNext ? 1 : -1);
-    }
-  });
 
-  /* wire the cards: the image is the door into the process */
-  cards.forEach(function (c, i) {
+  // The Work shortcut lands on the lit end of the hold. Manual scroll still scrubs the night install.
+  $("#nav").addEventListener("click",function (e) {
+    if (!e.target.closest('[data-go="work"]')) return;
+    var hold = workHold(); if (!hold) return;
+    e.preventDefault(); e.stopImmediatePropagation();
+    stopReplay(false); if (cin.on) setCinema(false);
+    window.scrollTo({top:hold.s0+.94*hold.px,behavior:reduced ? "auto" : "smooth"});
+  },true);
+
+  // Both the image and title/content of each pillar use the same entry route.
+  cards.forEach(function (c,i) {
+    c.dataset.workshopCase = String(i);
     var imw = $(".imw", c);
     if (imw) {
-      imw.insertAdjacentHTML("beforeend", '<span class="xc-open">Explore ↗</span>');
-      imw.setAttribute("role", "button"); imw.setAttribute("tabindex", "0");
-      imw.setAttribute("aria-label", "Open the " + CASES[i].title + " work process");
-      imw.addEventListener("keydown", function (e) {
-        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openCase(i, imw); }
+      imw.insertAdjacentHTML("beforeend", '<span class="xc-open">Enter gallery ↗</span>');
+      imw.setAttribute("role","button"); imw.setAttribute("tabindex","0"); imw.setAttribute("aria-haspopup","dialog");
+      imw.setAttribute("aria-label","Enter the " + CASES[i].title + " gallery");
+      imw.addEventListener("keydown",function (e) {
+        if (e.key === "Enter" || e.key === " ") {e.preventDefault(); if (!e.repeat) enterCase(i,imw);}
       });
+      imw.addEventListener("focus",window.RJWorkshop.warm);
     }
-    c.addEventListener("click", function (e) {
-      if (e.target.closest("a,button.xc-x")) return;
-      if (performance.now() - turn.release < 340) return;   /* that was a drag, not a click */
-      openCase(i, imw);
+    c.addEventListener("pointerenter",window.RJWorkshop.warm,{once:true,passive:true});
+    c.addEventListener("click",function (e) {
+      if (e.target.closest("a,button") || performance.now()-turn.release < 340) return;
+      enterCase(i,imw);
     });
   });
 
@@ -1787,7 +1676,11 @@ if (!small && actId === "contact") {
   function loop(ts) {
     var dt = lastT ? Math.min(70, ts - lastT) : 16.7;
     lastT = ts;
-
+    // The desktop scroll film stays at its current frame behind full-screen overlays.
+    if (caseOpen || window.RJWorkshop.active() || document.hidden) {
+      requestAnimationFrame(loop);
+      return;
+    }
     updateVelocity(ts, dt);
     updateSeq();
     updateCinema(dt);
@@ -1797,9 +1690,10 @@ if (!small && actId === "contact") {
       lastAct = actId; activeId = actId;
       rollOdo(actId === "about");
       armCards(false);
-      if (actId === "work") setTimeout(function () {
-        if (lastAct === "work") armCards(true);
-      }, reduced ? 0 : 1050);
+      if (actId === "work") {
+        window.RJWorkshop.warm();
+        setTimeout(function () {if (lastAct === "work") armCards(true);},reduced ? 0 : 1050);
+      }
       /* the panels are still flying in: re-measure the drawing as they land */
       buildAnno(true);
       [320, 760, 1250].forEach(function (d) {
@@ -1930,7 +1824,7 @@ if (!small && actId === "contact") {
   /* a small handle for debugging from the console */
   window.X = {
     setMode: setMode, sound: SND, anno: buildAnno, mode: function () { return MODE; },
-    openCase: openCase, closeCase: closeCase, CASES: CASES,
+    openCase: openCase, closeCase: closeCase,
     to: function (t) { window.scrollTo({ top: scrollAtTime(t), behavior: "smooth" }); }
   };
 })();
@@ -2062,30 +1956,4 @@ if (!small && actId === "contact") {
     var k = M[c.textContent.trim()];
     if (k && !c.querySelector(".pi")) c.insertAdjacentHTML("afterbegin", use(k));
   });
-})();
-
-/* ═════════ 32 · DECK PREWARM — instant board flips (wave 26) ═════════
-   Opening a service deck now warms every photo board of that case in
-   idle time (fetch + decode), so arrow/scroll flips paint from memory
-   instead of waiting on the network. Still images only; drawings and
-   sheets are inline SVG and cost nothing.                             */
-(function () {
-  var X = window.X; if (!X || !X.openCase || !X.CASES) return;
-  var idle = window.requestIdleCallback || function (f) { setTimeout(f, 350); };
-  var warmed = {};
-  function warm(ci) {
-    if (warmed[ci]) return; warmed[ci] = 1;
-    var c = X.CASES[ci]; if (!c) return;
-    idle(function () {
-      (c.stages || []).forEach(function (st) {
-        if (st.kind !== "photo" || !st.img) return;
-        var im = new Image();
-        im.decoding = "async";
-        im.src = st.img;
-        if (im.decode) im.decode().catch(function () {});
-      });
-    }, { timeout: 2500 });
-  }
-  var oc = X.openCase;
-  X.openCase = function (i) { var r = oc.apply(this, arguments); warm(i); return r; };
 })();
