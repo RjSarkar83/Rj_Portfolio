@@ -160,6 +160,12 @@ h2{font-weight:900;letter-spacing:-.028em;line-height:1.08;font-size:clamp(1.85r
   padding:.72rem 1.35rem;font-size:.75rem;letter-spacing:.16em;text-transform:uppercase;
   text-decoration:none;font-weight:700;transition:background .25s}
 .dl:hover{background:var(--accent)}
+.dl-group{display:flex;flex-direction:column;gap:.55rem;margin-top:.6rem}
+.dl-group .dl{margin-top:0;width:100%;text-align:center;box-sizing:border-box}
+.dl-alt{background:transparent;color:#121212;border:1.5px solid #121212}
+.dl-alt:hover{background:#121212;color:#f5efe7}
+.dl-wa{background:var(--accent);color:#fff}
+.dl-wa:hover{background:#b30510}
 
 /* contact */
 #s-contact .inner{display:flex;flex-direction:column;justify-content:center;align-items:flex-start}

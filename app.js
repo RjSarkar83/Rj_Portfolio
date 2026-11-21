@@ -54,7 +54,8 @@
            (r.yr ? '<div class="yy">' + r.yr + '</div>' : '') + '</div>';
   };
   $("#rExp").innerHTML = C.experience.map(rowHTML).join("");
-  $("#rEdu").innerHTML = C.education.map(rowHTML).join("");
+  var rEdu = $("#rEdu");
+  if (rEdu) rEdu.innerHTML = (C.education || []).map(rowHTML).join("");
   $("#rDl").href = C.resume;
 
   $("#cTitle").innerHTML = C.contactTitle;

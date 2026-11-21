@@ -38,7 +38,8 @@
     q('#m-stats').innerHTML = C.stats.map(function (s) { return '<div><strong>'+text(s.n)+'</strong><span>'+text(s.l)+'</span></div>'; }).join('');
     function historyLine(s) { return '<article>'+(s.yr ? '<time>'+text(s.yr)+'</time>' : '')+'<h3>'+text(s.role)+'</h3><p>'+text(s.org)+'</p></article>'; }
     q('#m-experience').innerHTML = C.experience.map(historyLine).join('');
-    q('#m-education').innerHTML = C.education.map(historyLine).join('');
+    var mEdu = q('#m-education');
+    if (mEdu) mEdu.innerHTML = (C.education || []).map(historyLine).join('');
     q('#m-skills').innerHTML = C.skills.map(function (s) { return '<li>'+text(s)+'</li>'; }).join('');
     q('#m-email').href = 'mailto:'+C.email;
     var directly = ['Book Call','Studio Map','Brand Card','The Offer'];
@@ -191,6 +192,43 @@
     }
     go(validKey(a.hash),{tab:a.hasAttribute('data-m-tab')});
   });
+  /* ── Mobile character animation (myself) ──
+     Desktop runs the scroll-scrubbed film in app.js; the phone never
+     loads app.js, so the character was invisible on mobile. This
+     lightweight auto-loop reuses the same mobile frames already
+     shipped in media/frames/*_m.webp (config frames[].m). */
+  (function initCharacter() {
+    var stage = q('#m-char-stage'), img = q('#m-char-img'), angle = q('#m-char-angle');
+    if (!stage || !img || !C.frames || !C.frames.length) return;
+    var frames = C.frames.map(function (f) { return f.m || f.src; });
+    var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var idx = 0, timer = null, visible = true;
+    function preload() { frames.forEach(function (src) { var im = new Image(); im.src = src; }); }
+    if (window.requestIdleCallback) requestIdleCallback(preload, { timeout: 2500 });
+    else setTimeout(preload, 600);
+    function show(i) {
+      idx = ((i % frames.length) + frames.length) % frames.length;
+      if (img.getAttribute('src') !== frames[idx]) img.src = frames[idx];
+      if (angle && C.frames[idx] && C.frames[idx].a) angle.textContent = C.frames[idx].a;
+    }
+    function tick() {
+      if (document.hidden || route !== 'home' || !visible || filmOpen) return;
+      show(idx + 1);
+    }
+    function start() { if (!timer && !reduced) timer = setInterval(tick, 105); }
+    function stop() { if (timer) { clearInterval(timer); timer = null; } }
+    if (reduced) { show(5); return; } /* static front pose, no motion */
+    show(0);
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (entries) {
+        visible = entries[0].isIntersecting;
+        if (visible) start(); else stop();
+      }, { threshold: 0.15 }).observe(stage);
+    }
+    document.addEventListener('visibilitychange', function () { document.hidden ? stop() : start(); });
+    stage.addEventListener('click', function () { show(0); start(); });
+    start();
+  })();
   renderContactAndAbout();
   q('.m-case-links').insertAdjacentHTML('afterend','<div class="m-case-film-link">'+tapFilm('Watch Intro')+'</div>');
   render(validKey(location.hash),{force:true,restore:true,historyY:(history.state || {}).y});

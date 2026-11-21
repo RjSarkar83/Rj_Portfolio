@@ -72,10 +72,7 @@ window.CONFIG = {
     { role: "Freelancing & Creative Lead", org: "ArtViSiON Production Design · Indore", yr: "2024 — present" },
     { role: "Creative Director",       org: "BrandSutra Media Convergence",         yr: "2021 — 2024" }
   ],
-  education: [
-    { role: "AAASP Diploma", org: "Arena Animation", yr: "" },
-    { role: "Production Designer → Sr. Brand Designer", org: "BrandSutra", yr: "2015 — 2021" }
-  ],
+  education: [],
   resume: "media/resume.pdf",
 
   /* 11 — contact -------------------------------------------- */
