@@ -15,7 +15,11 @@
     if (!window.CONFIG || !window.RJServicePlates || !window.RJIntro || !window.RJCases || !window.RJGallery || !window.RJWorkshop) throw new Error('A required portfolio script is missing');
     mount.parentNode.replaceChild(mount.content, mount);
     window.RJIntro.labelDuration(document);
-    if (mobile) return script('mobile.js' + revision);
+    if (mobile) return script('mobile.js' + revision).then(function () {
+      /* v1 — enhancement layer boots after the mobile shell exists */
+      return script('rj-mobile-hero.js' + revision).catch(function (e) { console.warn('rj-mobile-hero', e); })
+        .then(function () { return script('rj-ph.js' + revision).catch(function (e) { console.warn('rj-ph', e); }); });
+    });
     return script('app.js' + revision).then(function () { return script('enhance.js' + revision); }).then(function () {
       var caseLink = location.hash.match(/^#work\/([a-e])$/i);
       if (caseLink && window.X) window.X.openCase(caseLink[1].toUpperCase().charCodeAt(0) - 65, document.getElementById('av-watch-intro'));

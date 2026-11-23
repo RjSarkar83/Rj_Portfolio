@@ -82,10 +82,81 @@
     document.title = key === 'home' ? 'Ranjan Sarkar — Creative Lead, Design to Execution' :
       ((key === 'case' ? C.projects[caseIndex].title : ({work:'Selected work',about:'About',contact:'Contact'})[key])+' — Ranjan Sarkar');
     scrollUntil = performance.now()+120;
+    setTimeout(function () { aimTabs(); paintTabs(); }, 140);
     var y = options.restore ? (savedScroll[k] || options.historyY || 0) : 0;
     window.scrollTo(0,y);
     if (options.focus && heading) heading.focus({preventScroll:true});
   }
+  /* ── the tab bar tracks the scroll ──
+     On a long page the bar stays visible and the "current" tab follows the
+     section under the reader's eye: home → work → about → contact. Each tab
+     gets a 0–1 heat value, so the highlight travels smoothly instead of
+     snapping (and the home route's long particle stage stays on "Home"). */
+  var heat = { home: 1, work: 0, about: 0, contact: 0 };
+  var heatWant = { home: 1, work: 0, about: 0, contact: 0 };
+  var heatOn = false;
+
+  var ZONES = [                     /* what each tab owns while the home route runs */
+    { k: 'home',    from: 0,    to: 0.62 },   /* hero, character, film card */
+    { k: 'work',    from: 0.62, to: 0.80 },   /* selected work */
+    { k: 'about',   from: 0.80, to: 0.91 },   /* the day job + the numbers */
+    { k: 'contact', from: 0.91, to: 1.01 }    /* let's build something real */
+  ];
+
+  function aimTabs() {
+    var y = window.scrollY + (window.innerHeight * 0.45);
+    var doc = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+    var p = Math.min(1, Math.max(0, window.scrollY / doc));
+    var live = 'home';
+    if (route === 'home' || isCase(route)) {
+      live = 'home';
+      for (var i = 0; i < ZONES.length; i++) if (p >= ZONES[i].from) live = ZONES[i].k;
+    } else {
+      /* on work / about / contact the page is short: the eye sits on that page */
+      live = route;
+      var lead = q('[data-m-page="' + route + '"]');
+      if (lead) {
+        var top = lead.getBoundingClientRect().top + window.scrollY;
+        if (y < top) live = route;   /* still the same page, nothing above it */
+      }
+    }
+    heatWant = { home: 0, work: 0, about: 0, contact: 0 };
+    heatWant[live] = 1;
+    tabs.forEach(function (a) {
+      var k = a.dataset.mTab;
+      if (k === live) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
+    });
+    heatOn = true;
+  }
+
+  function paintTabs() {
+    if (!heatOn) return;
+    var k, moved = false;
+    for (k in heat) {
+      var d = heatWant[k] - heat[k];
+      if (Math.abs(d) > 0.004) { heat[k] += d * 0.18; moved = true; }
+      else heat[k] = heatWant[k];
+    }
+    tabs.forEach(function (a) {
+      var v = heat[a.dataset.mTab] || 0;
+      a.style.setProperty('--tab-heat', v.toFixed(3));
+    });
+    if (moved) requestAnimationFrame(paintTabs);
+  }
+
+  var tabTick = 0;
+  window.addEventListener('scroll', function () {
+    if (tabTick) return;
+    tabTick = requestAnimationFrame(function () {
+      tabTick = 0;
+      aimTabs();
+      paintTabs();
+    });
+  }, { passive: true });
+  window.addEventListener('resize', function () { aimTabs(); paintTabs(); }, { passive: true });
+  setTimeout(function () { aimTabs(); paintTabs(); }, 400);
+  document.addEventListener('rj:route', function () { aimTabs(); paintTabs(); });
+
   function save() {
     if (!route) return;
     savedScroll[route] = filmOpen ? filmScroll : window.scrollY;

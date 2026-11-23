@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-rj-release="av-final-5">
+<html lang="en" data-rj-release="av-final-6">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -32,6 +32,11 @@
   var revision = '?v=' + root.dataset.rjRelease;
   var styles = mobile ? ['mobile.css' + revision] : ['style.css','enhance.css' + revision];
   styles.push('portfolio-ui.css' + revision);
+  /* v1 — mobile hero enhancement layer (progress, character rig, site-log strip) */
+  if (mobile) {
+    styles.push('rj-mobile-hero.css' + revision);
+    styles.push('rj-ph.css' + revision);
+  }
   window.rjStyles = Promise.all(styles.map(function (url) {
     return new Promise(function (finish) {
       var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = url;
@@ -220,7 +225,7 @@
 <header class="m-header">
   <div class="m-wrap m-header-inner">
     <a class="m-brand" href="#home" aria-label="Ranjan Sarkar — Home">
-      <span class="m-mark"><img src="media/artvision-mobile/mark.webp" width="32" height="22" alt=""></span>
+      <span class="m-mark"><img src="media/artvision-mobile/mark-rj.svg" width="30" height="25" alt="Ranjan Sarkar"></span>
       <span class="m-wordmark"><strong>Ranjan Sarkar</strong><small>ArtViSiON Production Design</small></span>
     </a>
     <div class="m-case-header" hidden><a class="m-circle" href="#work" data-case-back aria-label="Back to selected work"><svg aria-hidden="true"><use href="#mi-back"/></svg></a><span><small>Selected work</small><strong id="m-case-header-name"></strong></span></div>
@@ -316,7 +321,7 @@
     </header>
     <div class="ap-stage">
       <article class="ap-slide ap-studio" data-av-name="Studio" data-av-hold="6000" hidden>
-        <h2 class="ap-identity ap-rise"><span class="ap-infinity">∞</span> <span>ArtViSi<span class="ap-on">ON</span>:</span> <small>PRODUCTion DESiGN</small></h2>
+        <h2 class="ap-identity ap-rise"><span class="ap-infinity"><img src="media/artvision-mobile/mark-rj.svg" alt="" width="42" height="35"></span> <span>ArtViSi<span class="ap-on">ON</span>:</span> <small>PRODUCTion DESiGN</small></h2>
         <div class="ap-promise ap-rise"><strong>360°</strong> <p><span>A-to-Z</span> Production &amp; <span>End-to-End</span> Branding Design to Execution Solutions.</p></div>
         <p class="ap-pillars ap-rise"><span class="ap-arrow" aria-hidden="true">➤</span> <span>• ADVERTiSiNG</span> <span>• BRANDiNG</span> <span>• CREATiVE</span> <span>• DESiGNiNG</span> <span>• EXECUTiON</span> <span class="ap-arrow" aria-hidden="true">- ➤</span></p>
       </article>
@@ -351,12 +356,12 @@
 <p id="rj-boot-error" hidden style="padding:2rem;font:16px system-ui">Couldn’t start the portfolio. Reload the page or <a style="color:inherit" href="mailto:rjsarkar@icloud.com">email Ranjan Sarkar</a>.</p>
 
 <noscript><main style="margin:8vh auto;max-width:42rem;padding:2rem;font:16px/1.6 system-ui"><h1>Ranjan Sarkar</h1><p>ArtViSiON Production Design · Indore</p><p>Enable JavaScript to browse the films and case studies, or <a style="color:inherit" href="mailto:rjsarkar@icloud.com">get in touch by email</a>.</p><p><a style="color:inherit" href="media/resume.pdf">Download résumé</a></p></main></noscript>
-<script defer src="config.js?v=av-final-5"></script>
-<script defer src="service-plates.js?v=av-final-5"></script>
-<script defer src="intro-player.js?v=av-final-5"></script>
-<script defer src="portfolio-cases.js?v=av-final-5"></script>
-<script defer src="workshop-gallery.js?v=av-final-5"></script>
-<script defer src="workshop-entry.js?v=av-final-5"></script>
-<script defer src="portfolio-boot.js?v=av-final-5"></script>
+<script defer src="config.js?v=av-final-6"></script>
+<script defer src="service-plates.js?v=av-final-6"></script>
+<script defer src="intro-player.js?v=av-final-6"></script>
+<script defer src="portfolio-cases.js?v=av-final-6"></script>
+<script defer src="workshop-gallery.js?v=av-final-6"></script>
+<script defer src="workshop-entry.js?v=av-final-6"></script>
+<script defer src="portfolio-boot.js?v=av-final-6"></script>
 </body>
 </html>

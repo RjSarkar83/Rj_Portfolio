@@ -1,0 +1,297 @@
+/* ============================================================
+   rj-ph.css  ·  "paper" edition of the mobile home
+   White paper · ink black · signal red #E30613
+   Only active while .rj-ph is on <html> (mobile home route).
+   ============================================================ */
+
+html.rj-ph{
+  background:#0e0f11;
+  --ph-red:#e30613;
+  --ph-ink:#f7f6f3;            /* headline ink on the dark route */
+  --ph-grey:#a49fa0;
+  --ph-line:rgba(247,246,243,.16);
+  --ph-paper:#0e0f11;          /* the stage is the site's night ground again */
+  --ph-panel:#16171a;
+}
+html.rj-ph body{background:var(--ph-paper)}
+
+/* header + tab bar carry the default dark shell */
+html.rj-ph .m-header{
+  background:rgba(19,20,22,.94);border-bottom:1px solid rgba(247,246,243,.10);
+  color:var(--ph-ink);
+}
+html.rj-ph .m-wordmark strong{color:var(--ph-ink)}
+html.rj-ph .m-wordmark small{color:var(--ph-grey)}
+html.rj-ph .m-mark{background:none}
+html.rj-ph .m-mark img{filter:invert(1) brightness(1.9)}
+html.rj-ph .m-circle{border-color:var(--ph-line);background:var(--ph-panel);color:var(--ph-ink)}
+html.rj-ph .m-circle:active{background:#241416}
+
+html.rj-ph #m-tabbar{
+  background:rgba(28,29,33,.5);border:1px solid rgba(247,246,243,.10);
+  backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);
+  box-shadow:0 -10px 30px rgba(0,0,0,.32);
+}
+html.rj-ph #m-tabbar a,html.rj-ph #m-tabbar .m-tab-icon,html.rj-ph #m-tabbar svg{opacity:1}
+html.rj-ph #m-tabbar a{color:color-mix(in srgb, #ffd7d8 calc(var(--tab-heat,0) * 100%), #8f8a86)}
+html.rj-ph #m-tabbar a[aria-current="page"]{color:#ffd7d8}
+html.rj-ph #m-tabbar a[aria-current="page"] .m-tab-icon{background:rgba(227,6,19,.1)}
+
+/* the dark hero + character card are replaced by the paper cover */
+html.rj-ph [data-m-page="home"] .m-hero,
+html.rj-ph [data-m-page="home"] .m-character{display:none!important}
+
+/* the v1 dark rig is dormant on the paper route */
+html.rj-ph .rjh-strip,
+html.rj-ph .rjh-metrics,
+html.rj-ph .rjh-aura,
+html.rj-ph .rjh-grid{display:none!important}
+html.rj-ph .rjh-progress i{background:linear-gradient(90deg,#e30613,#ff5a62)}
+
+/* ============ the paper experience ============ */
+.ph{position:relative;background:var(--ph-paper);color:var(--ph-ink);overflow:clip;
+  margin-inline:calc(var(--m-pad,22px) * -1);padding-inline:0}
+.ph *{box-sizing:border-box}
+
+/* ---------- the hero: one full screen, one drawing, one line ---------- */
+.ph-cover{position:relative;height:900svh;background:var(--ph-paper)}
+.ph-cover__pin{
+  position:sticky;top:66px;height:calc(100svh - 66px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:14px var(--m-pad,22px) calc(14px + env(safe-area-inset-bottom,0px));
+  background:var(--ph-paper);overflow:hidden;
+}
+.ph-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+
+.ph-say{
+  position:absolute;left:var(--m-pad,22px);right:var(--m-pad,22px);top:6px;
+  display:grid;gap:5px;pointer-events:none;
+  opacity:0;transform:translateY(6px);
+  transition:opacity .34s ease,transform .34s ease;
+}
+.ph-say.is-in{opacity:1;transform:none}
+.ph-say b{
+  font:700 8px/1 ui-monospace,Consolas,monospace;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--ph-red);
+}
+.ph-say #ph-say-w{
+  font-family:"Playfair Display",Playfair,Georgia,serif;font-style:italic;font-weight:600;
+  font-size:clamp(22px,7.2vw,30px);line-height:1.02;letter-spacing:-.02em;color:var(--ph-ink);
+}
+.ph-say-n{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  font:650 8px/1.5 ui-monospace,Consolas,monospace;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--ph-grey);
+}
+.ph-say-n .ph-say-l{color:var(--ph-grey);font-weight:650}
+/* the five service pillars land heavier: wordmark scale + the 360° kicker */
+.ph-say.is-pillar #ph-say-w{
+  font-size:clamp(30px,10.4vw,44px);letter-spacing:-.03em;line-height:.96;
+  color:var(--ph-ink);
+}
+.ph-say.is-pillar #ph-say-k{letter-spacing:.26em}
+.ph-say.is-pillar .ph-say-s em{font-size:8.5px;letter-spacing:.2em}
+.ph-say-s{display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;font-style:normal}
+.ph-say-s em{
+  font-style:normal;font-family:inherit;font-size:8px;letter-spacing:.18em;
+  color:var(--ph-ink);position:relative;padding-left:9px;
+}
+.ph-say-s em::before{
+  content:"";position:absolute;left:0;top:50%;width:3px;height:3px;
+  background:var(--ph-red);transform:translateY(-50%);
+}
+.ph-say-s em:not(:first-child)::before{background:var(--ph-grey)}
+
+.ph-stage{
+  position:relative;width:100%;flex:1 1 auto;margin:0;min-height:0;
+}
+.ph-stage canvas{display:block;width:100%;height:100%}
+
+.ph-cover__foot{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  width:100%;padding-top:6px;
+}
+.ph-scrollcue{
+  display:flex;align-items:center;gap:7px;
+  font:650 8px/1.4 ui-monospace,Consolas,monospace;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--ph-grey);
+}
+.ph-scrollcue span{display:block;width:14px;height:1px;background:var(--ph-red)}
+
+.ph *{box-sizing:border-box}
+
+.ph-kicker{
+  display:flex;align-items:center;gap:8px;
+  font:650 9px/1.3 ui-monospace,"SFMono-Regular",Consolas,monospace;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--ph-grey);
+}
+.ph-kicker i{width:6px;height:6px;background:var(--ph-red);display:block;border-radius:1px}
+.ph-kicker b{color:var(--ph-ink);font-weight:700}
+
+/* the paper sheet owns the whole viewport width on the home route */
+html.rj-ph #m-main{background:var(--ph-paper)}
+html.rj-ph #m-main>.m-main-pad{background:var(--ph-paper)}
+
+
+/* ---------- story sections ---------- */
+.ph-sec{
+  position:relative;
+  padding:44px var(--m-pad,22px) 40px;
+  border-top:1px solid var(--ph-line);
+  background:var(--ph-paper);
+}
+.ph-sec__num{
+  font:600 11px/1 ui-monospace,Consolas,monospace;letter-spacing:.2em;color:var(--ph-red);
+}
+.ph-sec__title{
+  margin:12px 0 0;font-family:"Playfair Display",Playfair,Georgia,serif;font-style:italic;font-weight:600;
+  font-size:clamp(26px,8.4vw,38px);line-height:1.02;letter-spacing:-.02em;color:var(--ph-ink);
+}
+.ph-sec__title em{color:var(--ph-red);font-style:italic}
+.ph-sec__body{
+  margin:11px 0 0;max-width:34ch;font-size:13.5px;line-height:1.6;color:#c3beba
+}
+.ph-sec__figure{
+  display:flex;align-items:baseline;gap:10px;margin:20px 0 0;
+}
+.ph-sec__figure b{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+  font-weight:800;font-size:clamp(44px,14vw,64px);line-height:.86;letter-spacing:-.04em;color:var(--ph-red);
+}
+.ph-sec__figure span{
+  font:600 9px/1.5 ui-monospace,Consolas,monospace;letter-spacing:.16em;text-transform:uppercase;color:var(--ph-grey);
+  max-width:11ch;
+}
+.ph-sec__note{
+  margin:14px 0 0;font:600 9px/1.7 ui-monospace,Consolas,monospace;letter-spacing:.14em;
+  text-transform:uppercase;color:#8f8a86;
+}
+.ph-rule{height:1px;background:var(--ph-line);margin:26px 0 0}
+
+/* typographic marquee between sections */
+.ph-band{
+  position:relative;height:42px;margin-block:8px;background:var(--ph-paper);overflow:hidden;
+  border-top:1px solid var(--ph-line);border-bottom:1px solid var(--ph-line);
+  display:flex;align-items:center;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);
+}
+.ph-band__track{
+  display:flex;width:max-content;animation:ph-marquee 32s linear infinite;
+}
+.ph-band__track span{
+  display:inline-flex;align-items:center;gap:14px;padding-right:14px;
+  font:650 9.5px/1 ui-monospace,Consolas,monospace;letter-spacing:.2em;
+  text-transform:uppercase;color:#9b9692;white-space:nowrap;
+}
+.ph-band__track span i{width:4px;height:4px;background:var(--ph-red);display:block;border-radius:1px}
+@keyframes ph-marquee{to{transform:translateX(-50%)}}
+
+/* ---------- outfit / outro ---------- */
+.ph-outro{
+  padding:52px var(--m-pad,22px) 34px;background:#08090a;color:#f7f6f3;border-top:1px solid var(--ph-line);
+}
+.ph-outro .ph-kicker{color:rgba(247,246,243,.55)}
+.ph-outro .ph-kicker{gap:6px}
+.ph-outro .ph-kicker b{color:#fff;white-space:nowrap}
+.ph-outro .ph-kicker span{white-space:nowrap}
+.ph-outro h2{
+  margin:14px 0 0;font-family:"Playfair Display",Playfair,Georgia,serif;font-style:italic;font-weight:600;
+  font-size:clamp(34px,11vw,52px);line-height:.98;letter-spacing:-.03em;color:#fff;
+}
+.ph-outro h2 em{color:#ff5a62;font-style:italic}
+.ph-outro p{margin:14px 0 0;max-width:32ch;font-size:13.5px;line-height:1.6;color:rgba(247,246,243,.7)}
+.ph-outro__links{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:22px}
+.ph-outro__links a{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:13px 14px;border:1px solid rgba(247,246,243,.2);border-radius:12px;
+  color:#f7f6f3;text-decoration:none;font:650 9.5px/1 ui-monospace,Consolas,monospace;
+  letter-spacing:.14em;text-transform:uppercase;
+}
+.ph-outro__links a:active{background:rgba(255,255,255,.08)}
+.ph-outro__links b{color:#ff5a62;font-weight:700}
+.ph-outro__sig{
+  margin-top:20px;padding-top:14px;border-top:1px solid rgba(247,246,243,.16);
+  display:flex;justify-content:space-between;
+  font:600 8px/1.6 ui-monospace,Consolas,monospace;letter-spacing:.16em;text-transform:uppercase;color:rgba(247,246,243,.42);
+}
+
+/* ---------- fix the dark sections that now sit under paper ---------- */
+html.rj-ph .m-home-work-head .m-kicker{color:var(--ph-grey)}
+html.rj-ph .m-home-work-head h2{color:var(--ph-ink)}
+html.rj-ph .m-home-work-head .m-text-link{color:var(--ph-red)}
+html.rj-ph .m-home-foot p{color:#c3beba}
+html.rj-ph .m-home-foot .m-text-link{color:var(--ph-red)}
+html.rj-ph [data-m-page="home"] .m-section-head,
+html.rj-ph [data-m-page="home"] #m-featured,
+html.rj-ph [data-m-page="home"] .m-home-foot{position:relative;z-index:1}
+
+
+/* ============================================
+   the process story — one particle field that
+   transforms acrylic → ACP → ads → inshop → 2D plan
+   ============================================ */
+.ph-st{padding:44px 0 30px;background:var(--ph-paper);position:relative}
+.ph-st__head{padding:0 var(--m-pad,22px)}
+.ph-st__h{
+  margin:12px 0 0;font-family:"Playfair Display",Playfair,Georgia,serif;
+  font-size:clamp(30px,9.2vw,44px);line-height:1.0;letter-spacing:-.03em;color:var(--ph-ink);font-weight:500;
+}
+.ph-st__h em{color:var(--ph-red);font-style:italic}
+.ph-st__nav{list-style:none;margin:12px 0 0;padding:0 var(--m-pad,22px);border-top:1px solid var(--ph-line)}
+.ph-st__nav li{
+  display:flex;align-items:baseline;gap:10px;padding:6px 0;border-bottom:1px solid var(--ph-line);
+  font:650 9.5px/1.3 ui-monospace,Consolas,monospace;letter-spacing:.16em;text-transform:uppercase;
+  color:#b3ada8;transition:color .28s linear;
+}
+.ph-st__nav li b{font-weight:700;color:inherit;font-size:9px}
+.ph-st__nav li.is-done{color:#6d6965}
+.ph-st__nav li.is-on{color:var(--ph-red)}
+
+/* the stage stays on screen while the five panels scroll past it */
+.ph-st__pin{position:sticky;top:56px;z-index:4;background:var(--ph-paper);padding-top:8px}
+.ph-st__stage{
+  position:relative;margin:0 calc(var(--m-pad,22px) * -1);height:min(38svh,300px);
+  background:linear-gradient(#16171a,#101113);
+  border-block:1px solid var(--ph-line);overflow:hidden;
+}
+.ph-st__stage canvas{display:block;width:100%;height:100%}
+.ph-st__shot{
+  position:absolute;left:var(--m-pad,22px);right:var(--m-pad,22px);bottom:8px;
+  display:flex;justify-content:space-between;align-items:baseline;gap:10px;
+  font:650 8px/1.5 ui-monospace,Consolas,monospace;letter-spacing:.18em;
+  text-transform:uppercase;color:#8f8a86;
+}
+.ph-st__shot b{color:var(--ph-red);font-weight:700}
+.ph-st__rail{margin:0 calc(var(--m-pad,22px) * -1);height:2px;background:var(--ph-line);overflow:hidden}
+.ph-st__rail i{display:block;height:100%;width:0;background:var(--ph-red);transition:width .1s linear}
+
+.ph-st__panels{
+  position:relative;padding:0 var(--m-pad,22px);min-height:27svh;max-height:200px;
+}
+.ph-st__panel{
+  position:absolute;left:var(--m-pad,22px);right:var(--m-pad,22px);top:12px;
+  opacity:0;transform:translateY(8px);pointer-events:none;
+  transition:opacity .38s ease,transform .38s ease;
+}
+.ph-st__panel.is-on{opacity:1;transform:none}
+/* invisible spacers: five screens of scroll drive the five drawings */
+.ph-st__track{display:block}
+.ph-st__track i{display:block;height:64svh}
+.ph-st__num{font:650 9px/1 ui-monospace,Consolas,monospace;letter-spacing:.2em;color:var(--ph-red)}
+.ph-st__title{
+  margin:8px 0 0;font-family:"Playfair Display",Playfair,Georgia,serif;font-style:italic;
+  font-weight:600;font-size:clamp(25px,8vw,34px);line-height:1.02;letter-spacing:-.02em;color:var(--ph-ink);
+}
+.ph-st__cap{margin:10px 0 0;font-size:13.5px;line-height:1.62;color:#c8c3bf;max-width:34ch}
+.ph-st__cap em{color:var(--ph-red);font-style:italic}
+.ph-st__note{
+  margin:10px 0 0;font:650 8.5px/1.6 ui-monospace,Consolas,monospace;
+  letter-spacing:.16em;text-transform:uppercase;color:#8f8a86;
+}
+
+@media (prefers-reduced-motion:reduce){
+  .ph-band__track{animation:none}
+  .ph-st__panel,.ph-st__nav li{transition:none}}
+  .ph-scrollcue span::after{animation:none}
+}

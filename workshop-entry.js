@@ -35,7 +35,7 @@
     work.setAttribute('aria-labelledby','rw-title'); work.setAttribute('aria-describedby','rw-description');
     work.innerHTML = '<h1 class="rg-sr" id="rw-title">Enter the ArtViSiON workshop</h1><p class="rg-sr" id="rw-description">A short visual transition. Use Skip to gallery to enter immediately or Close to return to services.</p>'+
       '<div class="rw-scenes" aria-hidden="true"></div><div class="rw-shade" aria-hidden="true"></div>'+
-      '<div class="rw-top"><div class="rw-studio"><span class="rw-mark" aria-hidden="true"><img src="media/artvision-mobile/mark.webp" alt="" width="40" height="26"></span><span><strong>ArtViSiON</strong><small>WORKSHOP ENTRY</small></span></div>'+
+      '<div class="rw-top"><div class="rw-studio"><span class="rw-mark" aria-hidden="true"><img src="media/artvision-mobile/mark-rj.svg" alt="" width="30" height="25"></span><span><strong>ArtViSiON</strong><small>WORKSHOP ENTRY</small></span></div>'+
       '<div class="rw-actions"><button type="button" class="rw-skip" aria-label="Skip to gallery" autofocus>Skip<span> to gallery</span><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m6 5 9 7-9 7m12-14v14"/></svg></button>'+
       '<button type="button" class="rw-close" aria-label="Close transition"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div></div>'+
       '<div class="rw-reticle" aria-hidden="true"><i></i><i></i><i></i><i></i></div>'+

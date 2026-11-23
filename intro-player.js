@@ -2,6 +2,20 @@
 (function () {
   'use strict';
   var folder = 'media/artvision-working-line/';
+  /* The film files ship separately: probe once so a missing deck never floods the console. */
+  var deckReady = null;
+  function filmAvailable() {
+    if (deckReady) return deckReady;
+    deckReady = new Promise(function (resolve) {
+      var probe = document.createElement('video');
+      probe.preload = 'metadata'; probe.muted = true;
+      var done = function (yes) { probe.removeAttribute('src'); resolve(yes); };
+      probe.onloadedmetadata = function () { done(true); };
+      probe.onerror = function () { done(false); };
+      probe.src = folder + films.en.file + '.mp4';
+    });
+    return deckReady;
+  }
   var revision = '?v=' + encodeURIComponent(document.documentElement.dataset.rjRelease);
   var length = '03:26';
   var films = {
@@ -157,7 +171,7 @@
       o.scope.setAttribute('data-intro-edition',lang);
       label.textContent = f.edition;
       v.setAttribute('aria-label','ArtViSiON Introduction, ' + f.name + ' edition');
-      v.poster = folder + 'poster-' + lang + '.webp';
+      v.removeAttribute('poster');
       buttons.forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.introLang === lang)); });
     }
     function remember() {
@@ -189,6 +203,17 @@
       });
     }
     function attach(format, resume) {
+      filmAvailable().then(function (ok) {
+        if (failed) return;
+        if (!ok) {
+          failed = true; intent = false; o.start.hidden = false;
+          if (open) status('The film deck isn’t uploaded yet — the studio titles and case studies run without it.');
+          return;
+        }
+        attachNow(format, resume);
+      });
+    }
+    function attachNow(format, resume) {
       v.pause();
       failed = false;
       var ext = format === 'webm' ? '.vp9.webm' : '.mp4';

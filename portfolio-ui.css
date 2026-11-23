@@ -268,7 +268,8 @@ html[data-rj-layout="mobile"] [data-m-page="case"]>.m-case-film-link{margin-top:
   column-gap:.18em;color:var(--ap-paper);font:640 clamp(40px,8.3vw,98px)/1 var(--ap-serif);
   letter-spacing:-.065em;overflow-wrap:anywhere;
 }
-.ap-infinity{color:var(--ap-gold);font:400 .62em/1 system-ui,sans-serif;align-self:center;letter-spacing:0}
+.ap-infinity{color:var(--ap-gold);font:400 .62em/1 system-ui,sans-serif;align-self:center;letter-spacing:0;display:inline-flex}
+.ap-infinity img{width:.95em;height:auto;display:block;filter:invert(1) brightness(1.9)}
 .ap-on{color:var(--ap-signal)}
 .ap-identity small{grid-column:2;margin:.55em 0 0 .2em;color:var(--ap-gold);font:660 clamp(12px,1.6vw,17px)/1.35 var(--ap-mono);letter-spacing:.155em}
 .ap-promise{
